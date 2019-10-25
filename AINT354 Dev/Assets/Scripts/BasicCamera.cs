@@ -19,7 +19,7 @@ public class BasicCamera : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float mouseVec = Input.GetAxis("Mouse Y");
+        float mouseVec = Input.GetAxis("Camera Y");
 
         currRot = Mathf.Clamp(currRot + (-mouseVec * vertSensitivity), minRot, maxRot);
         transform.localRotation = Quaternion.identity;
