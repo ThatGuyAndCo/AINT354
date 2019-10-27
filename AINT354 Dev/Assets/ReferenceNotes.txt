@@ -1,0 +1,66 @@
+Reference Game Notes:
+
+Moving and hitting:
+
+ - Movement is suprisingly slow
+ - Sprint speed aprox. 2x normal move speed
+ - Jump has much greater velocity than movement (aids evasion)
+ - Jump is more long than high
+ - Original jump velocity + playerInput?
+ - Second jump pushes player in direction movement stick is pressed
+ - Jump height, feet reach aprox. 2x height of character
+ - Second jump resets momentum/gravity
+ - Second jump aprox 50% of first height
+
+ - No free movement whilst attacking
+    - Attack animations move player slightly
+    - Attack animations rotate in direction movement stick is pushed
+    - Rotation is maxed to approx 150 degrees either direction?
+
+ - Camera is about height of player behind the character
+ - Camera smoothly falls behind and catches up as player moves / attacks
+ - Camera follows player movement and lightly rotates as player moves left/right
+ - Player faces direction of movement stick
+ - Camera and player rotation are independent
+
+ - Attacks have no delay between button press and animation start
+ - Animations takes 0.15 secs (maybe about 7 frames) to reach hitbox
+ - Aerial attack freezes Y-axis movement and resets any jump momentum
+ - Hitboxes much larger than animation suggests
+    - Charged attacks have bigger hitboxes and move player further
+ - Hitboxes shown by particle effects
+ - Particle effect when launching opponent
+
+ - In combos:
+    - Quicker next button is pressed, quicker next attack will start
+    - Heavy overrides any light attack input
+    - Can charge each attack for approx 0.5 secs by holding button
+    - Attack used automatically when fully charged
+    - Additonal particle effects when fully charged
+    - Combo chain lasts for approx 0.5 secs after animation finishes
+    - No other actions (exc. dodge and block) can be performed until combo chain over
+    - Dodge can lead into another attack (for my proj, will lead into either running or finisher)
+    - Full combo covers approx 1.5-2x height of character
+
+ - Dodge is instant, covers about 2.5x height of character
+ - Dodge can follow into an attack
+ - Can dodge once in air
+ - Dodge has 0.5 sec delay afterwards before any other inputs (unless combo'd into an attack)
+
+ - Block prevents all damage but prevents movement (player rotates in movement direction)
+ - Block can only be performed when grounded
+ - Block is instant
+ - Block interrupts combos, but no delay to launch next attack
+
+Getting hit:
+
+ - Certain attacks in combos launch instantly
+ - Some attacks launch up (juggle) but finishers launch up and away from attacker //Likely wont use juggle
+ - Some attacks slide player across floor without stunning/launching them
+ - Gravity lower for falling after launch
+ - When launch X-axis/Z-axis momentum is under a certain value, player can dodge out of the stun
+ - Dodge from stun instantly transitions to a dodge animation, covered by particle effect
+ - Stun after aprox. 3 light attacks
+ - Stun lasts 1 sec
+ - No stun buildup whilst blocking
+ - Charged attacks have amplified Stun/Knockback
