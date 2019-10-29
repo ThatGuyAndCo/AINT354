@@ -9,6 +9,7 @@ public class BasicControls: MonoBehaviour
     public int playerNumber = 0;
 
     [Header("Movement Variables")]
+    public Transform rotationAnchor;
     public float rotationSmoothing = 0.5f;
     public float initSpeed = 3.0f;
     public float gravity = 1.0f;
@@ -43,6 +44,8 @@ public class BasicControls: MonoBehaviour
     public bool[] heavyHitboxesToClear;
     public bool triggeredSandbag = false;
     public bool recoveryPhase = false;
+    public Vector3 attackVelocity = Vector3.forward;
+    public float attackRotClamp = 80.0f;
 
     [Header("Stun and Impact Variables")]
     public float stun = 0.0f;
@@ -96,7 +99,7 @@ public class BasicControls: MonoBehaviour
         if (!sandbag)
         {
             //float mouseDir = Input.GetAxis("Camera X");
-            Vector3 clampedInput = transform.TransformDirection(new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")));
+            Vector3 clampedInput = rotationAnchor.TransformDirection(new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")));
             clampedInput = Vector3.ClampMagnitude(clampedInput, 1.0f);
 
             ///////////////Sprinting/////////////////
@@ -144,7 +147,7 @@ public class BasicControls: MonoBehaviour
             ///////////////Attacking Movement/////////////////
             if (attacking)
             {
-                moveVeloc = transform.TransformDirection(Vector3.forward * moveSpeed * 0.15f);
+                moveVeloc = attackVelocity;
             }
             else if (playerCont.isGrounded)
             {
@@ -156,10 +159,10 @@ public class BasicControls: MonoBehaviour
             }
 
             ///////////////Rotate Camera/////////////////
-
-            //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(
-            transform.LookAt(transform.position + (clampedInput * moveSpeed));
-                //), rotationSmoothing);
+            if (!attacking)
+            {
+                transform.LookAt(transform.position + (clampedInput * moveSpeed));
+            }
 
             ///////////////Input-based Sprint Reset/////////////////
             if (clampedInput.magnitude < 0.25f)
@@ -175,6 +178,8 @@ public class BasicControls: MonoBehaviour
                 {
                     attacking = true;
                     attackNum++;
+                    attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
+                    transform.LookAt(transform.position + (clampedInput * moveSpeed));
                     anim.SetBool("IsAttacking", true);
                     anim.SetInteger("AttackNumber", attackNum);
                     heavyAttack = false;
@@ -188,6 +193,8 @@ public class BasicControls: MonoBehaviour
                     CancelInvoke("finishAttack");
                     attackAgain = true;
                     heavyAttack = false;
+                    attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
+                    transform.LookAt(transform.position + (clampedInput * moveSpeed));
                     if (attackNum == 3) //If add to light attack combo, update this (value == attack before final attack of combo)
                     {
                         comboFinisher = true;

@@ -6,7 +6,7 @@ public class BasicCamera : MonoBehaviour
 {
     [Header("Anchor")]
     public GameObject anchor;
-    public GameObject camera;
+    public GameObject cameraObj;
     [Header("Movement Variables")]
     public float vertSensitivity = 1.5f;
     public float horizSensitivity = 2.0f;
