@@ -9,6 +9,7 @@ public class BasicControls: MonoBehaviour
     public int playerNumber = 0;
 
     [Header("Movement Variables")]
+    public float rotationSmoothing = 0.5f;
     public float initSpeed = 3.0f;
     public float gravity = 1.0f;
     public float horizSensitivity = 2.0f;
@@ -94,7 +95,7 @@ public class BasicControls: MonoBehaviour
         //This allows the creation of a sandbag character and allows Stun and Knockback to disable the player for a short time
         if (!sandbag)
         {
-            float mouseDir = Input.GetAxis("Camera X");
+            //float mouseDir = Input.GetAxis("Camera X");
             Vector3 clampedInput = transform.TransformDirection(new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")));
             clampedInput = Vector3.ClampMagnitude(clampedInput, 1.0f);
 
@@ -155,8 +156,11 @@ public class BasicControls: MonoBehaviour
             }
 
             ///////////////Rotate Camera/////////////////
-            transform.Rotate(Vector3.up, mouseDir * horizSensitivity);
-            
+
+            //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(
+            transform.LookAt(transform.position + (clampedInput * moveSpeed));
+                //), rotationSmoothing);
+
             ///////////////Input-based Sprint Reset/////////////////
             if (clampedInput.magnitude < 0.25f)
             {
@@ -274,6 +278,7 @@ public class BasicControls: MonoBehaviour
         }
 
         ///////////////Apply Movement/////////////////
+        
         playerCont.Move(totalVeloc * Time.deltaTime);
         
         anim.SetFloat("MovementSpeed", moveVeloc.magnitude / (initSpeed * sprintSpeedMultiplier));
