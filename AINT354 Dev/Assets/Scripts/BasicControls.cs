@@ -11,6 +11,7 @@ public class BasicControls: MonoBehaviour
     [Header("Movement Variables")]
     public Transform rotationAnchor;
     public float rotationSmoothing = 0.5f;
+    public float attackRotationMultiplier = 2.0f;
     public float initSpeed = 3.0f;
     public float gravity = 1.0f;
     public float horizSensitivity = 2.0f;
@@ -161,9 +162,16 @@ public class BasicControls: MonoBehaviour
             ///////////////Rotate Camera/////////////////
             if (!attacking)
             {
-                transform.LookAt(transform.position + (clampedInput * moveSpeed));
-                //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(new Vector3(transform.position.x, 0, transform.position.y) + (clampedInput * moveSpeed)), rotationSmoothing * Time.deltaTime);
-                //transform.rotation = Quaternion.LookRotation(new Vector3(transform.position.x, 0, transform.position.y) + (clampedInput * moveSpeed));
+                //transform.LookAt(transform.position + (clampedInput * moveSpeed));
+                if (clampedInput != Vector3.zero)
+                {
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation((new Vector3(rotationAnchor.position.x, transform.position.y, rotationAnchor.position.z) + (clampedInput * moveSpeed)) - transform.position), Time.deltaTime * rotationSmoothing);
+                }
+            }
+            else
+            {
+
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(attackVelocity), Time.deltaTime * rotationSmoothing * attackRotationMultiplier);
             }
 
             ///////////////Input-based Sprint Reset/////////////////
@@ -181,7 +189,7 @@ public class BasicControls: MonoBehaviour
                     attacking = true;
                     attackNum++;
                     attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
-                    transform.LookAt(transform.position + (clampedInput * moveSpeed));
+                    //transform.LookAt(transform.position + (clampedInput * moveSpeed));
                     anim.SetBool("IsAttacking", true);
                     anim.SetInteger("AttackNumber", attackNum);
                     heavyAttack = false;
@@ -202,14 +210,16 @@ public class BasicControls: MonoBehaviour
                     if (attackTriggered)
                     {
                         attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
-                        transform.LookAt(transform.position + clampedInput * moveSpeed * 0.15f);
+                        Debug.Log("Attack Number = " + attackNum + ", attack veloc = " + attackVelocity);
+                        //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(attackVelocity - transform.position), Time.deltaTime * rotationSmoothing * attackRotationMultiplier);
                         nextAction();
                     }
                 }
                 else if (attacking && attackAgain && attackTriggered)
                 {
                     attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
-                    transform.LookAt(transform.position + clampedInput * moveSpeed * 0.15f);
+                    Debug.Log("Attack Number = " + attackNum + ", attack veloc = " + attackVelocity);
+                    //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(attackVelocity - transform.position), Time.deltaTime * rotationSmoothing * attackRotationMultiplier);
                     nextAction();
                 }
             }
