@@ -232,6 +232,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sandbag: 1
   playerNumber: 0
+  rotationAnchor: {fileID: 0}
   rotationSmoothing: 0.5
   initSpeed: 5
   gravity: 37
@@ -257,6 +258,8 @@ MonoBehaviour:
   heavyHitboxesToClear: 
   triggeredSandbag: 0
   recoveryPhase: 0
+  attackVelocity: {x: 0, y: 0, z: 1}
+  attackRotClamp: 80
   stun: 0
   health: 1000
   impactMultiplier: 1
@@ -424,6 +427,60 @@ Transform:
   m_Father: {fileID: 1528681105}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &558941941
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 558941942}
+  - component: {fileID: 558941943}
+  m_Layer: 0
+  m_Name: CameraHorizRot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &558941942
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 558941941}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.833, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 1853168498}
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &558941943
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 558941941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b25b9f63925cb7148a0ac4840a7ed9ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  anchor: {fileID: 2130228896}
+  cameraVertRot: {fileID: 1853168496}
+  vertSensitivity: 2.25
+  horizSensitivity: 2
+  smoothing: 0.125
+  maxYRot: 80
+  minYRot: -50
+  xRotationClamp: 80
+  currYRot: 0
+  currXRot: 0
 --- !u!1 &655995926
 GameObject:
   m_ObjectHideFlags: 0
@@ -658,7 +715,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0.13052616, y: -0, z: -0, w: 0.9914449}
+  m_LocalRotation: {x: 0.13052616, y: 0, z: 0, w: 0.9914449}
   m_LocalPosition: {x: 0, y: 0.8080001, z: -2.451}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -1028,7 +1085,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sandbag: 0
   playerNumber: 1
-  rotationSmoothing: 0.5
+  rotationAnchor: {fileID: 558941942}
+  rotationSmoothing: 1
   initSpeed: 5
   gravity: 37
   horizSensitivity: 3
@@ -1053,6 +1111,8 @@ MonoBehaviour:
   heavyHitboxesToClear: 
   triggeredSandbag: 0
   recoveryPhase: 0
+  attackVelocity: {x: 0, y: 0, z: 1}
+  attackRotClamp: 80
   stun: 0
   health: 1000
   impactMultiplier: 1
@@ -1383,34 +1443,13 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1853168498}
-  - component: {fileID: 1853168497}
   m_Layer: 0
-  m_Name: CameraOffset
+  m_Name: CameraOffsetAndVertRot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1853168497
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1853168496}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b25b9f63925cb7148a0ac4840a7ed9ef, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  anchor: {fileID: 2130228896}
-  camera: {fileID: 963194225}
-  vertSensitivity: 2.25
-  horizSensitivity: 2
-  smoothing: 0.125
-  maxYRot: 80
-  minYRot: -80
-  xRotationClamp: 80
 --- !u!4 &1853168498
 Transform:
   m_ObjectHideFlags: 0
@@ -1418,12 +1457,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1853168496}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.833, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 963194228}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 558941942}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2007841326

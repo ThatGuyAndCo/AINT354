@@ -162,6 +162,8 @@ public class BasicControls: MonoBehaviour
             if (!attacking)
             {
                 transform.LookAt(transform.position + (clampedInput * moveSpeed));
+                //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(new Vector3(transform.position.x, 0, transform.position.y) + (clampedInput * moveSpeed)), rotationSmoothing * Time.deltaTime);
+                //transform.rotation = Quaternion.LookRotation(new Vector3(transform.position.x, 0, transform.position.y) + (clampedInput * moveSpeed));
             }
 
             ///////////////Input-based Sprint Reset/////////////////
@@ -193,17 +195,21 @@ public class BasicControls: MonoBehaviour
                     CancelInvoke("finishAttack");
                     attackAgain = true;
                     heavyAttack = false;
-                    attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
-                    transform.LookAt(transform.position + (clampedInput * moveSpeed));
                     if (attackNum == 3) //If add to light attack combo, update this (value == attack before final attack of combo)
                     {
                         comboFinisher = true;
                     }
                     if (attackTriggered)
+                    {
+                        attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
+                        transform.LookAt(transform.position + clampedInput * moveSpeed * 0.15f);
                         nextAction();
+                    }
                 }
                 else if (attacking && attackAgain && attackTriggered)
                 {
+                    attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
+                    transform.LookAt(transform.position + clampedInput * moveSpeed * 0.15f);
                     nextAction();
                 }
             }
