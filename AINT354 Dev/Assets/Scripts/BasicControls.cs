@@ -11,6 +11,7 @@ public class BasicControls: MonoBehaviour
     [Header("Movement Variables")]
     public Transform rotationAnchor;
     public float rotationSmoothing = 0.5f;
+    public float attackRotationMultiplier = 2.0f;
     public float initSpeed = 3.0f;
     public float gravity = 1.0f;
     public float horizSensitivity = 2.0f;
@@ -46,6 +47,7 @@ public class BasicControls: MonoBehaviour
     public bool recoveryPhase = false;
     public bool attackMovementActive = false;
     public float attackMovementSpeed = 1.0f;
+    public Vector3 attackVelocity = Vector3.zero; //This is only used for calculating rotations during attacks
 
     [Header("Stun and Impact Variables")]
     public float stun = 0.0f;
@@ -156,7 +158,16 @@ public class BasicControls: MonoBehaviour
             ///////////////Rotate Camera/////////////////
             if (!attacking)
             {
-                transform.LookAt(transform.position + (clampedInput * moveSpeed));
+                //transform.LookAt(transform.position + (clampedInput * moveSpeed));
+                if (clampedInput != Vector3.zero)
+                {
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation((new Vector3(rotationAnchor.position.x, transform.position.y, rotationAnchor.position.z) + (clampedInput * moveSpeed)) - transform.position), Time.deltaTime * rotationSmoothing);
+                }
+            }
+            else
+            {
+
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(attackVelocity), Time.deltaTime * rotationSmoothing * attackRotationMultiplier);
             }
 
             ///////////////Input-based Sprint Reset/////////////////
@@ -173,7 +184,8 @@ public class BasicControls: MonoBehaviour
                 {
                     attacking = true;
                     attackNum++;
-                    transform.LookAt(transform.position + (clampedInput * moveSpeed));
+                    attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
+                    //transform.LookAt(transform.position + (clampedInput * moveSpeed));
                     anim.SetBool("IsAttacking", true);
                     anim.SetInteger("AttackNumber", attackNum);
                     if (Input.GetButtonDown("Fire1"))
@@ -213,13 +225,17 @@ public class BasicControls: MonoBehaviour
 
                     if (attackTriggered)
                     {
-                        transform.LookAt(transform.position + (clampedInput * moveSpeed));
+                        attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
+                        Debug.Log("Attack Number = " + attackNum + ", attack veloc = " + attackVelocity);
+                        //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(attackVelocity - transform.position), Time.deltaTime * rotationSmoothing * attackRotationMultiplier);
                         nextAction();
                     }
                 }
                 else if (attacking && attackAgain && attackTriggered)
                 {
-                    transform.LookAt(transform.position + (clampedInput * moveSpeed));
+                    attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
+                    Debug.Log("Attack Number = " + attackNum + ", attack veloc = " + attackVelocity);
+                    //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(attackVelocity - transform.position), Time.deltaTime * rotationSmoothing * attackRotationMultiplier);
                     nextAction();
                 }
             }
@@ -245,7 +261,7 @@ public class BasicControls: MonoBehaviour
         {
             knocked = true;
         }
-        
+
         if (jumpVeloc > (-1 * gravity))
         {
             jumpVeloc -= gravity * Time.deltaTime;
@@ -256,7 +272,7 @@ public class BasicControls: MonoBehaviour
         if (!attacking)
             totalVeloc = jumpVeloc * Vector3.up;
         else
-            totalVeloc = new Vector3(0, -0.1f, 0); 
+            totalVeloc = new Vector3(0, -0.1f, 0);
 
         if (knocked == true)
         {
@@ -275,7 +291,7 @@ public class BasicControls: MonoBehaviour
         }
 
         ///////////////Apply Stun and Knockback Rotation and Calc Movement/////////////////
-        
+
         if (stun > 0)
             stun -= stunFadeTime * Time.deltaTime;
         else if (stun < 0)
@@ -323,7 +339,7 @@ public class BasicControls: MonoBehaviour
             anim.SetFloat("MovementSpeed", moveVeloc.magnitude / (initSpeed * sprintSpeedMultiplier));
             anim.SetBool("IsGrounded", playerCont.isGrounded);
         }
-        
+
 
         ///////////////Reset Jump and Sprinting/////////////////
         if (playerCont.isGrounded && timesJumped != 0 && !jumpPending)
@@ -408,7 +424,7 @@ public class BasicControls: MonoBehaviour
     //the next attack, and we cannot pass variables in an invoke. Any variables set on a class level could be overwritten.
     //As such, I need an boolean array for each attack type and an index for each hitbox, to be set to true in a method called
     //by the animation. This in turn will invoke a 'Clear' method that will disable any hitboxes who's index is true.
-    void clearHitboxes() 
+    void clearHitboxes()
     {
         for(int i = 0; i < lightHitboxesToClear.Length; i++)
         {
@@ -522,7 +538,7 @@ public class BasicControls: MonoBehaviour
     }
 
     /////////////// Impact Code /////////////////
-    
+
     void applySandbag()
     {
         sandbag = true;
@@ -530,7 +546,7 @@ public class BasicControls: MonoBehaviour
         sprinting = false;
         jumpPending = false;
         sprintBeforeJump = false;
-        
+
     }
 
     void triggerRecoveryPhase()
@@ -547,7 +563,7 @@ public class BasicControls: MonoBehaviour
         knocked = false;
         recoveryPhase = false;
     }
-    
+
     void triggerStunOnCommand()
     {
         addStun(100.0f);
