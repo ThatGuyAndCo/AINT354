@@ -44,8 +44,8 @@ public class BasicControls: MonoBehaviour
     public bool[] heavyHitboxesToClear;
     public bool triggeredSandbag = false;
     public bool recoveryPhase = false;
-    public Vector3 attackVelocity = Vector3.forward;
-    public float attackRotClamp = 80.0f;
+    public bool attackMovementActive = false;
+    public float attackMovementSpeed = 1.0f;
 
     [Header("Stun and Impact Variables")]
     public float stun = 0.0f;
@@ -72,7 +72,6 @@ public class BasicControls: MonoBehaviour
     }
 
     // Update is called once per frame
-    //Fix Sprint
     void Update()
     {
         Vector3 totalVeloc;
@@ -139,31 +138,25 @@ public class BasicControls: MonoBehaviour
             }
             else if (Input.GetButtonDown("Jump") && timesJumped == 1 && !jumpPending)
             {
-                originalJumpVeloc += (clampedInput * moveSpeed * jumpSlowMultiplier) * 0.5f;
+                originalJumpVeloc = moveVeloc + (clampedInput * moveSpeed * jumpSlowMultiplier * 0.5f);
                 timesJumped++;
                 anim.SetInteger("JumpNumber", timesJumped);
             }
 
-            ///////////////Attacking Movement/////////////////
-            if (attacking)
-            {
-                moveVeloc = attackVelocity;
-            }
-            else if (playerCont.isGrounded)
+            ///////////////Grounded or Jumping Movement/////////////////
+            if (playerCont.isGrounded)
             {
                 moveVeloc = clampedInput * moveSpeed;
             }
             else
             {
-                moveVeloc = (originalJumpVeloc * 0.75f) + (clampedInput * moveSpeed * jumpSlowMultiplier);
+                moveVeloc = Vector3.ClampMagnitude((originalJumpVeloc * 0.75f) + (clampedInput * moveSpeed * jumpSlowMultiplier), originalJumpVeloc.magnitude);
             }
 
             ///////////////Rotate Camera/////////////////
             if (!attacking)
             {
                 transform.LookAt(transform.position + (clampedInput * moveSpeed));
-                //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(new Vector3(transform.position.x, 0, transform.position.y) + (clampedInput * moveSpeed)), rotationSmoothing * Time.deltaTime);
-                //transform.rotation = Quaternion.LookRotation(new Vector3(transform.position.x, 0, transform.position.y) + (clampedInput * moveSpeed));
             }
 
             ///////////////Input-based Sprint Reset/////////////////
@@ -176,40 +169,57 @@ public class BasicControls: MonoBehaviour
             // Attack Triggered is handled by methods called by the animations to properly set timing
             if (playerCont.isGrounded && !sprinting && !jumpPending)
             {
-                if (Input.GetButtonDown("Fire1") && !attacking)
+                if ((Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")) && !attacking)
                 {
                     attacking = true;
                     attackNum++;
-                    attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
                     transform.LookAt(transform.position + (clampedInput * moveSpeed));
                     anim.SetBool("IsAttacking", true);
                     anim.SetInteger("AttackNumber", attackNum);
-                    heavyAttack = false;
+                    if (Input.GetButtonDown("Fire1"))
+                    {
+                        heavyAttack = false;
+                    }
+                    else
+                    {
+                        heavyAttack = true;
+                    }
                     anim.SetBool("HeavyAttack", heavyAttack);
                     comboFinisher = false;
                     Debug.Log("Triggering attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
                 }
-                else if (Input.GetButtonDown("Fire1") && attacking && !attackAgain && !comboFinisher)
+                else if ((Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")) && attacking && !attackAgain && !comboFinisher)
                 {
                     Debug.Log("Setting attackAgain = true");
                     CancelInvoke("finishAttack");
                     attackAgain = true;
-                    heavyAttack = false;
-                    if (attackNum == 3) //If add to light attack combo, update this (value == attack before final attack of combo)
+                    if (Input.GetButtonDown("Fire1"))
+                    {
+                        if (heavyAttack)
+                            comboFinisher = true;
+                        heavyAttack = false;
+                    }
+                    else
+                    {
+                        if (!heavyAttack)
+                            comboFinisher = true;
+                        heavyAttack = true;
+                    }
+
+                    if ((!heavyAttack && attackNum == 3) || (heavyAttack && attackNum == 2)) //If add to light attack combo, update this (value == attack before final attack of combo)
                     {
                         comboFinisher = true;
                     }
+
                     if (attackTriggered)
                     {
-                        attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
-                        transform.LookAt(transform.position + clampedInput * moveSpeed * 0.15f);
+                        transform.LookAt(transform.position + (clampedInput * moveSpeed));
                         nextAction();
                     }
                 }
                 else if (attacking && attackAgain && attackTriggered)
                 {
-                    attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
-                    transform.LookAt(transform.position + clampedInput * moveSpeed * 0.15f);
+                    transform.LookAt(transform.position + (clampedInput * moveSpeed));
                     nextAction();
                 }
             }
@@ -235,13 +245,18 @@ public class BasicControls: MonoBehaviour
         {
             knocked = true;
         }
-
+        
         if (jumpVeloc > (-1 * gravity))
         {
             jumpVeloc -= gravity * Time.deltaTime;
         }
 
-        totalVeloc = jumpVeloc * Vector3.up;
+        //Moving forward with a Y velocity of 0 can cause the character controller to raise ever so slightly, and isGrounded to become false
+        //But to allow jumping attacks, we don't want gravity, so setting a very small negative Y value in the else fixes the issue
+        if (!attacking)
+            totalVeloc = jumpVeloc * Vector3.up;
+        else
+            totalVeloc = new Vector3(0, -0.1f, 0); 
 
         if (knocked == true)
         {
@@ -284,18 +299,30 @@ public class BasicControls: MonoBehaviour
                 }
             }
         }
-        else
+        else if(!attacking)
         {
             triggeredImpact = false;
             totalVeloc += moveVeloc;
         }
+        else
+        {
+            triggeredImpact = false;
+        }
 
         ///////////////Apply Movement/////////////////
-        
-        playerCont.Move(totalVeloc * Time.deltaTime);
-        
-        anim.SetFloat("MovementSpeed", moveVeloc.magnitude / (initSpeed * sprintSpeedMultiplier));
-        anim.SetBool("IsGrounded", playerCont.isGrounded);
+
+        if (!attacking || attackMovementActive)
+        {
+            if (attackMovementActive)
+            {
+                totalVeloc += transform.TransformDirection(Vector3.forward);
+                totalVeloc *= attackMovementSpeed;
+            }
+            playerCont.Move(totalVeloc * Time.deltaTime);
+
+            anim.SetFloat("MovementSpeed", moveVeloc.magnitude / (initSpeed * sprintSpeedMultiplier));
+            anim.SetBool("IsGrounded", playerCont.isGrounded);
+        }
         
 
         ///////////////Reset Jump and Sprinting/////////////////
@@ -366,7 +393,7 @@ public class BasicControls: MonoBehaviour
 
     void triggerHeavyAttack(int animAttackNum)
     {
-        Debug.Log("Calling triggerLightAttack");
+        Debug.Log("Calling triggerHeavyAttack");
 
         heavyAttackHitboxes[animAttackNum - 1].SetActive(true);
         heavyHitboxesToClear[animAttackNum - 1] = true;
@@ -402,6 +429,18 @@ public class BasicControls: MonoBehaviour
         }
     }
 
+    //Called by animation to manually set amount of time and speed of movement for each animation
+    void activateAttackMovement(float speed)
+    {
+        attackMovementActive = true;
+        attackMovementSpeed = speed;
+    }
+
+    void clearAttackMovement()
+    {
+        attackMovementActive = false;
+    }
+
     void nextAction()
     {
         Debug.Log("Calling nextAction");
@@ -431,7 +470,10 @@ public class BasicControls: MonoBehaviour
 
     void invokeFinishAttack()
     {
-        Invoke("finishAttack", initComboCooldown);
+        if (attackTriggered)
+        {
+            Invoke("finishAttack", initComboCooldown);
+        }
     }
 
     void nextAttack()

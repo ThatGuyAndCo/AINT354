@@ -66,6 +66,13 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
+      - time: 0.44841272
+        functionName: activateAttackMovement
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 3
+        intParameter: 0
+        messageOptions: 0
       - time: 0.5237782
         functionName: triggerLightAttack
         data: 
@@ -75,6 +82,13 @@ ModelImporter:
         messageOptions: 0
       - time: 0.83952916
         functionName: invokeFinishAttack
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.63754493
+        functionName: clearAttackMovement
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
