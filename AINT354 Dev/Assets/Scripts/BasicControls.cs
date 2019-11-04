@@ -184,7 +184,7 @@ public class BasicControls: MonoBehaviour
                 {
                     attacking = true;
                     attackNum++;
-                    attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
+                    attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
                     //transform.LookAt(transform.position + (clampedInput * moveSpeed));
                     anim.SetBool("IsAttacking", true);
                     anim.SetInteger("AttackNumber", attackNum);
@@ -225,7 +225,7 @@ public class BasicControls: MonoBehaviour
 
                     if (attackTriggered)
                     {
-                        attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
+                        attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
                         Debug.Log("Attack Number = " + attackNum + ", attack veloc = " + attackVelocity);
                         //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(attackVelocity - transform.position), Time.deltaTime * rotationSmoothing * attackRotationMultiplier);
                         nextAction();
@@ -233,7 +233,7 @@ public class BasicControls: MonoBehaviour
                 }
                 else if (attacking && attackAgain && attackTriggered)
                 {
-                    attackVelocity = transform.TransformDirection(Vector3.forward + clampedInput * moveSpeed * 0.15f);
+                    attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
                     Debug.Log("Attack Number = " + attackNum + ", attack veloc = " + attackVelocity);
                     //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(attackVelocity - transform.position), Time.deltaTime * rotationSmoothing * attackRotationMultiplier);
                     nextAction();
