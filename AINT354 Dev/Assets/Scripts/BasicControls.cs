@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BasicControls: MonoBehaviour
+public class BasicControls : MonoBehaviour
 {
     [Header("Player Settings")]
     public bool sandbag = false;
@@ -31,6 +31,13 @@ public class BasicControls: MonoBehaviour
     private Animator anim;
     private bool jumpPending = false;
 
+    [Header("Dashing Variables")]
+    public float dashSpeed = 9.0f;
+    public bool dashable = true;
+    public bool dashing = false;
+    public bool canDashAttack = false;
+    public Vector3 dashVelocity = Vector3.zero;
+
     [Header("Combat Variables")]
     public bool attacking = false;
     public int attackNum = 0;
@@ -43,6 +50,8 @@ public class BasicControls: MonoBehaviour
     public bool[] lightHitboxesToClear;
     public GameObject[] heavyAttackHitboxes;
     public bool[] heavyHitboxesToClear;
+    public GameObject[] sprintAttackHitboxes;
+    public bool[] sprintHitboxesToClear;
     public bool triggeredSandbag = false;
     public bool recoveryPhase = false;
     public bool attackMovementActive = false;
@@ -80,12 +89,27 @@ public class BasicControls: MonoBehaviour
 
         //Allows bypassing of sandbag for certain inputs, i.e. recovery dodge and recovery attack
         //Timing for this is set by method call in animation
-        if(playerNumber != 0)
+        if (playerNumber != 0)
         {
-            if(knocked && sandbag && recoveryPhase)
+            if (dashable)
             {
-                //check for dash input
-                //resetSandbag();
+                if (Input.GetButtonDown("Dash"))
+                {
+                    //Dashing overrides any other actions this frame, allows cancelling attacks
+                    finishAttack();
+                    anim.SetTrigger("Dash");
+                    Vector3 clampedInput = rotationAnchor.TransformDirection(new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")));
+                    clampedInput = Vector3.ClampMagnitude(clampedInput, 1.0f);
+                    dashVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
+                    transform.LookAt(dashVelocity);
+
+                    dashable = false;
+                    dashing = true;
+                    attackMovementActive = false;
+                    attacking = false;
+                    sprinting = false;
+                    knocked = false;
+                }
             }
 
             //Check for triggerStun/KnockbackOnCommand inputs
@@ -97,12 +121,12 @@ public class BasicControls: MonoBehaviour
 
         //Handle all code that checks for inputs in following block
         //This allows the creation of a sandbag character and allows Stun and Knockback to disable the player for a short time
-        if (!sandbag)
+        if (!sandbag && !dashing)
         {
             //float mouseDir = Input.GetAxis("Camera X");
             Vector3 clampedInput = rotationAnchor.TransformDirection(new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")));
             clampedInput = Vector3.ClampMagnitude(clampedInput, 1.0f);
-
+            
             ///////////////Sprinting/////////////////
             if (!sprinting && Input.GetButtonDown("Sprint") && playerCont.isGrounded && !attacking)
             {
@@ -166,7 +190,7 @@ public class BasicControls: MonoBehaviour
             }
             else
             {
-
+                //transform.LookAt(attackVelocity); //Not smoothing rotation during attacking for extra player control
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(attackVelocity), Time.deltaTime * rotationSmoothing * attackRotationMultiplier);
             }
 
@@ -188,6 +212,7 @@ public class BasicControls: MonoBehaviour
                     //transform.LookAt(transform.position + (clampedInput * moveSpeed));
                     anim.SetBool("IsAttacking", true);
                     anim.SetInteger("AttackNumber", attackNum);
+                    dashable = true;
                     if (Input.GetButtonDown("Fire1"))
                     {
                         heavyAttack = false;
@@ -239,6 +264,24 @@ public class BasicControls: MonoBehaviour
                     nextAction();
                 }
             }
+            else if (sprinting && (Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")))
+            {
+                attacking = true;
+                attackNum++;
+                attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
+                anim.SetBool("IsAttacking", true);
+                anim.SetInteger("AttackNumber", attackNum);
+                anim.SetBool("IsSprinting", true);
+                Debug.Log("Triggering sprint attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
+            }
+        }
+        else if (dashing && (Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")))
+        {
+            attacking = true;
+            attackNum++;
+            attackVelocity = transform.TransformDirection(Vector3.forward) * moveSpeed * 0.15f;
+            anim.SetTrigger("DashAttack");
+            Debug.Log("Triggering sprint attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
         }
 
         ///////////////Calculate Stun/////////////////
@@ -315,7 +358,7 @@ public class BasicControls: MonoBehaviour
                 }
             }
         }
-        else if(!attacking)
+        else if (!attacking)
         {
             triggeredImpact = false;
             totalVeloc += moveVeloc;
@@ -333,6 +376,10 @@ public class BasicControls: MonoBehaviour
             {
                 totalVeloc += transform.TransformDirection(Vector3.forward);
                 totalVeloc *= attackMovementSpeed;
+            } else if (dashing)
+            {
+                totalVeloc += transform.TransformDirection(Vector3.forward);
+                totalVeloc *= dashSpeed;
             }
             playerCont.Move(totalVeloc * Time.deltaTime);
 
@@ -367,7 +414,7 @@ public class BasicControls: MonoBehaviour
             sprinting = false;
             jumpVeloc = initJumpSpeed;
         }
-        else if(timesJumped == 2)
+        else if (timesJumped == 2)
         {
             if (jumpVeloc > 0)
             {
@@ -419,6 +466,18 @@ public class BasicControls: MonoBehaviour
         Invoke("clearHitboxes", 0.25f);
     }
 
+    void triggerSprintAttack(int animAttackNum)
+    {
+        Debug.Log("Calling triggerSprintAttack");
+
+        sprintAttackHitboxes[animAttackNum - 1].SetActive(true);
+        sprintHitboxesToClear[animAttackNum - 1] = true;
+        attackTriggered = true;
+
+        Debug.Log("Invoking clearHitboxes");
+        Invoke("clearHitboxes", 0.25f);
+    }
+
     //As animations can be interrupted, need to invoke a clearing method after a short period of time
     //The challenge is that we cannot clear all hitboxes as that might clear a hitbox that was just opened by
     //the next attack, and we cannot pass variables in an invoke. Any variables set on a class level could be overwritten.
@@ -426,9 +485,10 @@ public class BasicControls: MonoBehaviour
     //by the animation. This in turn will invoke a 'Clear' method that will disable any hitboxes who's index is true.
     void clearHitboxes()
     {
-        for(int i = 0; i < lightHitboxesToClear.Length; i++)
+        dashable = true;
+        for (int i = 0; i < lightHitboxesToClear.Length; i++)
         {
-            if(lightHitboxesToClear[i] == true)
+            if (lightHitboxesToClear[i] == true)
             {
                 lightAttackHitboxes[i].SetActive(false);
                 lightHitboxesToClear[i] = false;
@@ -441,6 +501,15 @@ public class BasicControls: MonoBehaviour
             {
                 heavyAttackHitboxes[i].SetActive(false);
                 heavyHitboxesToClear[i] = false;
+            }
+        }
+
+        for (int i = 0; i < sprintHitboxesToClear.Length; i++)
+        {
+            if (sprintHitboxesToClear[i] == true)
+            {
+                sprintAttackHitboxes[i].SetActive(false);
+                sprintHitboxesToClear[i] = false;
             }
         }
     }
@@ -465,10 +534,10 @@ public class BasicControls: MonoBehaviour
             attackNum++;
             if (attackNum < 5)
             {
+                dashable = false;
                 anim.SetBool("IsAttacking", true);
                 anim.SetInteger("AttackNumber", attackNum);
                 anim.SetBool("HeavyAttack", heavyAttack);
-                attackAgain = false;
                 anim.SetBool("Finisher", comboFinisher);
             }
             else
@@ -488,6 +557,7 @@ public class BasicControls: MonoBehaviour
     {
         if (attackTriggered)
         {
+            Debug.Log("Invoking finish attack");
             Invoke("finishAttack", initComboCooldown);
         }
     }
@@ -495,6 +565,7 @@ public class BasicControls: MonoBehaviour
     void nextAttack()
     {
         attackTriggered = false;
+        attackAgain = false;
         CancelInvoke("finishAttack");
     }
 
@@ -502,56 +573,92 @@ public class BasicControls: MonoBehaviour
     {
         Debug.Log("Calling finishAttack");
         anim.SetBool("IsAttacking", false);
+        anim.SetBool("IsSprinting", false);
         attacking = false;
         attackAgain = false;
         attackTriggered = false;
+        dashable = true;
         attackNum = 0;
         anim.SetInteger("AttackNumber", attackNum);
+    }
+
+
+    /////////////// Dash Attack Code /////////////////
+
+    public void enableDashAttack()
+    {
+        canDashAttack = true;
+    }
+
+    public void disableDashAttack()
+    {
+        canDashAttack = false;
+    }
+
+    public void disableDash()
+    {
+        dashing = false;
+        dashable = true;
     }
 
     /////////////// Impact Code /////////////////
 
     public void addImpact(Vector3 direction, float force, Vector3 impactOriginVec)
     {
-        direction.Normalize();
-        if (direction.y < 0)
+        if (!dashing)
         {
-            direction.y = -direction.y;
+            direction.Normalize();
+            if (direction.y < 0)
+            {
+                direction.y = -direction.y;
+            }
+            impact += (direction.normalized * force / mass) * impactMultiplier;
+            impactOrigin = impactOriginVec;
         }
-        impact += (direction.normalized * force / mass) * impactMultiplier;
-        impactOrigin = impactOriginVec;
     }
 
     public void addStun(float force)
     {
-        stun += force;
+        if (!dashing)
+        {
+            stun += force;
+        }
     }
 
     public void addDamage(float damage)
     {
-        health -= damage;
+        if (!dashing){        
+            health -= damage;
+        }
     }
 
     public void addImpactMultiplierDamage(float damage)
     {
-        impactMultiplier += damage;
+        if (!dashing)
+        {
+            impactMultiplier += damage;
+        }
     }
 
-    /////////////// Impact Code /////////////////
+    /////////////// Sandbag Code /////////////////
 
     void applySandbag()
     {
+        Debug.Log("Applying Sandbag");
         sandbag = true;
         finishAttack();
         sprinting = false;
         jumpPending = false;
         sprintBeforeJump = false;
-
+        dashable = false;
+        if(knocked)
+            playerCont.center = new Vector3(0, 0.85f, -1.48f);
     }
 
     void triggerRecoveryPhase()
     {
         recoveryPhase = true;
+        dashable = true;
     }
 
     void resetSandbag()
@@ -560,6 +667,8 @@ public class BasicControls: MonoBehaviour
         if(playerNumber != 0)
             sandbag = false;
         triggeredSandbag = false;
+        if (knocked)
+            playerCont.center = new Vector3(0, 0.85f, 0f);
         knocked = false;
         recoveryPhase = false;
     }

@@ -1,11 +1,11 @@
 fileFormatVersion: 2
-guid: ae2d99c7a69b2db4c9fc5f567340df85
+guid: ae211348518f4c54db1c5b6b85fec716
 ModelImporter:
   serializedVersion: 26
   internalIDToNameTable:
   - first:
       74: -203655887218126122
-    second: Kicking
+    second: Dash
   externalObjects: {}
   materials:
     importMaterials: 1
@@ -35,19 +35,19 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Kicking
+      name: Dash
       takeName: mixamo.com
       internalID: 0
-      firstFrame: 13
-      lastFrame: 53
+      firstFrame: 0
+      lastFrame: 29
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 1
+      loopTime: 0
+      loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
       loopBlendPositionXZ: 0
@@ -59,43 +59,22 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0
-        functionName: nextAttack
+      - time: 0.286888
+        functionName: enableDashAttack
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0
-        functionName: activateAttackMovement
-        data: 
-        objectReferenceParameter: {instanceID: 0}
-        floatParameter: 5
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.37323946
-        functionName: triggerSprintAttack
-        data: 
-        objectReferenceParameter: {instanceID: 0}
-        floatParameter: 0
-        intParameter: 1
-        messageOptions: 0
-      - time: 0.86788404
-        functionName: finishAttack
+      - time: 0.82968247
+        functionName: disableDashAttack
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0.8986126
-        functionName: clearAttackMovement
-        data: 
-        objectReferenceParameter: {instanceID: 0}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.9770411
-        functionName: clearAttackMovement
+      - time: 1
+        functionName: disableDash
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0

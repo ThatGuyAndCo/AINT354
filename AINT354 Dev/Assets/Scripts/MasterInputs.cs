@@ -14,7 +14,7 @@ public class MasterInputs : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetButtonDown("Cancel"))
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetButtonDown("Escape"))
         {
             Cursor.visible = !Cursor.visible;
         }

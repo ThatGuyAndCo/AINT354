@@ -242,6 +242,11 @@ MonoBehaviour:
   secondJumpSpeed: 15
   jumpSlowMultiplier: 0.85
   sprintSpeedMultiplier: 1.5
+  dashSpeed: 9
+  dashable: 1
+  dashing: 0
+  canDashAttack: 0
+  dashVelocity: {x: 0, y: 0, z: 0}
   attacking: 0
   attackNum: 0
   attackAgain: 0
@@ -257,6 +262,8 @@ MonoBehaviour:
   lightHitboxesToClear: 00000000
   heavyAttackHitboxes: []
   heavyHitboxesToClear: 
+  sprintAttackHitboxes: []
+  sprintHitboxesToClear: 
   triggeredSandbag: 0
   recoveryPhase: 0
   attackMovementActive: 0
@@ -543,7 +550,7 @@ MonoBehaviour:
   parentsHitbox: {fileID: 1528681104}
   damageTag: Character
   healthDamage: 15
-  applyImpactMultiplier: 1
+  applyImpactMultiplier: 0
   impactMultiplierDamage: 0.05
   applyStun: 1
   stunDamage: 2
@@ -702,8 +709,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 732452920}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.076, y: 1.155, z: 0.395}
-  m_LocalScale: {x: 3, y: 5, z: 3}
+  m_LocalPosition: {x: 0.076, y: 1.155, z: 0.301}
+  m_LocalScale: {x: 3, y: 5, z: 3.25}
   m_Children: []
   m_Father: {fileID: 1528681105}
   m_RootOrder: 10
@@ -824,7 +831,7 @@ MonoBehaviour:
   parentsHitbox: {fileID: 1528681104}
   damageTag: Character
   healthDamage: 30
-  applyImpactMultiplier: 1
+  applyImpactMultiplier: 0
   impactMultiplierDamage: 0.1
   applyStun: 1
   stunDamage: 1.5
@@ -852,8 +859,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1047109635}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.065, y: 0.564, z: 0.473}
-  m_LocalScale: {x: 2, y: 5, z: 2}
+  m_LocalPosition: {x: 0.065, y: 0.564, z: 0.277}
+  m_LocalScale: {x: 2, y: 5, z: 3}
   m_Children: []
   m_Father: {fileID: 1528681105}
   m_RootOrder: 8
@@ -1109,6 +1116,73 @@ Transform:
   m_Father: {fileID: 280104311}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1389587212
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1389587215}
+  - component: {fileID: 1389587214}
+  - component: {fileID: 1389587213}
+  m_Layer: 0
+  m_Name: Sprint1Hitbox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &1389587213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1389587212}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8d940eae3dbd494ea157055e5a018bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  parentsHitbox: {fileID: 1528681104}
+  damageTag: Character
+  healthDamage: 35
+  applyImpactMultiplier: 1
+  impactMultiplierDamage: 0.15
+  applyStun: 1
+  stunDamage: 1.5
+  impactMagnitude: 7
+  impactHorizontalMultiplier: 2
+  impactVerticalMultiplier: 0.5
+--- !u!65 &1389587214
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1389587212}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.3, y: 0.2, z: 0.5}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!4 &1389587215
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1389587212}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.015, y: 1.155, z: 0.007}
+  m_LocalScale: {x: 4, y: 5, z: 4}
+  m_Children: []
+  m_Father: {fileID: 1528681105}
+  m_RootOrder: 11
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1422398539
 GameObject:
   m_ObjectHideFlags: 0
@@ -1231,6 +1305,11 @@ MonoBehaviour:
   secondJumpSpeed: 15
   jumpSlowMultiplier: 0.85
   sprintSpeedMultiplier: 1.5
+  dashSpeed: 2
+  dashable: 1
+  dashing: 0
+  canDashAttack: 0
+  dashVelocity: {x: 0, y: 0, z: 0}
   attacking: 0
   attackNum: 0
   attackAgain: 0
@@ -1249,6 +1328,9 @@ MonoBehaviour:
   - {fileID: 1998231055}
   - {fileID: 732452920}
   heavyHitboxesToClear: 000000
+  sprintAttackHitboxes:
+  - {fileID: 1389587212}
+  sprintHitboxesToClear: 00
   triggeredSandbag: 0
   recoveryPhase: 0
   attackMovementActive: 0
@@ -1639,7 +1721,7 @@ MonoBehaviour:
   parentsHitbox: {fileID: 1528681104}
   damageTag: Character
   healthDamage: 25
-  applyImpactMultiplier: 1
+  applyImpactMultiplier: 0
   impactMultiplierDamage: 0.12
   applyStun: 1
   stunDamage: 3
@@ -1667,8 +1749,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1998231055}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.027, y: 0.678, z: 0.925}
-  m_LocalScale: {x: 1.5, y: 5, z: 2}
+  m_LocalPosition: {x: 0.027, y: 0.678, z: 0.239}
+  m_LocalScale: {x: 1.5, y: 5, z: 4}
   m_Children: []
   m_Father: {fileID: 1528681105}
   m_RootOrder: 9
@@ -1706,7 +1788,7 @@ MonoBehaviour:
   parentsHitbox: {fileID: 1528681104}
   damageTag: Character
   healthDamage: 25
-  applyImpactMultiplier: 1
+  applyImpactMultiplier: 0
   impactMultiplierDamage: 0.1
   applyStun: 1
   stunDamage: 3
