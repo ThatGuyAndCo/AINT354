@@ -23,6 +23,11 @@ Moving and hitting:
  - Player faces direction of movement stick
  - Camera and player rotation are independent
 
+ - When locked on:
+    - Character rotates to target when stops moving
+    - Camera ensures target is always on screen but doesn't keep target somewhat centered
+    - Attack and movement direction still work as normal, with the camera defining forward
+
  - Attacks have no delay between button press and animation start
  - Animations takes 0.15 secs (maybe about 7 frames) to reach hitbox
  - Aerial attack freezes Y-axis movement and resets any jump momentum

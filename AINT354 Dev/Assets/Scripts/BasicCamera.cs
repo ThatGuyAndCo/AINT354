@@ -16,6 +16,7 @@ public class BasicCamera : MonoBehaviour
     public float xRotationClamp = 80.0f;
     public float currYRot = 0.0f;
     public float currXRot = 0.0f;
+    public float zoomLevel = 0.0f;
 
     // For note: Horizontal rot is considered rotation around Vec3.Up (i.e. looking left & right), and Vertical rot is around Vec3.Left (i.e. up and down)
     void Update()
@@ -29,7 +30,7 @@ public class BasicCamera : MonoBehaviour
         else if (currXRot < 0)
             currXRot += 360;
 
-        Vector3 smoothedPosition = Vector3.Slerp(transform.position, anchor.transform.position, smoothing);
+        Vector3 smoothedPosition = Vector3.Slerp(transform.position, anchor.transform.position - transform.TransformDirection(new Vector3(0, 0, zoomLevel)), smoothing);
         transform.position = smoothedPosition;
 
         transform.localRotation = Quaternion.identity;
@@ -37,5 +38,10 @@ public class BasicCamera : MonoBehaviour
 
         //Need to pass both X and Y to vertRot else it will offset the Y rot based on parent's rot to keep an overall value of 0, preventing horizontal camera movement
         cameraVertRot.transform.rotation = Quaternion.Euler(currYRot, currXRot, 0);
+    }
+
+    public void setCameraZoom(float zoomLevel)
+    {
+        this.zoomLevel = zoomLevel;
     }
 }

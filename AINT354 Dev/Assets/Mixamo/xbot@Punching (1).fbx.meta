@@ -87,7 +87,7 @@ ModelImporter:
         functionName: activateAttackMovement
         data: 
         objectReferenceParameter: {instanceID: 0}
-        floatParameter: 0.85
+        floatParameter: 3
         intParameter: 0
         messageOptions: 0
       - time: 0.5915493

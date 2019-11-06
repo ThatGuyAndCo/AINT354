@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class BasicAttack : MonoBehaviour
 {
-    [Header("Parent's Hitbox")]
+    [Header("Parent")]
+    public Transform parentPosition;
     public CharacterController parentsHitbox;
     [Header("Damage Tag")]
     public string damageTag = "Character";
@@ -19,6 +20,8 @@ public class BasicAttack : MonoBehaviour
     public float impactMagnitude = 1.0f;
     public float impactHorizontalMultiplier = 1.0f;
     public float impactVerticalMultiplier = 0.5f;
+    [Header("Pushback Values")]
+    public float pushbackForce = 1.0f;
 
     void OnTriggerEnter(Collider col)
     {
@@ -38,8 +41,12 @@ public class BasicAttack : MonoBehaviour
                 if (applyStun)
                     target.addStun(stunDamage);
 
+                Vector3 impactDirection = new Vector3((col.transform.position.x - transform.position.x) * impactHorizontalMultiplier, 1.0f * impactVerticalMultiplier, (col.transform.position.z - transform.position.z) * impactHorizontalMultiplier);
+
                 //impact will always be added, for light attacks not designed to knockback, the multipliers will be very low
-                target.addImpact(new Vector3((col.transform.position.x - transform.position.x) * impactHorizontalMultiplier, 1.0f * impactVerticalMultiplier, (col.transform.position.z - transform.position.z) * impactHorizontalMultiplier), impactMagnitude, transform.position);
+                target.addImpact(impactDirection, impactMagnitude, parentPosition.position);
+
+                target.addPushback(impactDirection, pushbackForce);
                 //Debug.Log("Applied stuffz");
             }
             catch { }

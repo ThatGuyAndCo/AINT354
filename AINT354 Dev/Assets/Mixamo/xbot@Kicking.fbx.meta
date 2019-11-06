@@ -60,13 +60,6 @@ ModelImporter:
       curves: []
       events:
       - time: 0
-        functionName: nextAttack
-        data: 
-        objectReferenceParameter: {instanceID: 0}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0
         functionName: activateAttackMovement
         data: 
         objectReferenceParameter: {instanceID: 0}
@@ -81,20 +74,20 @@ ModelImporter:
         intParameter: 1
         messageOptions: 0
       - time: 0.86788404
-        functionName: finishAttack
+        functionName: invokeFinishAttack
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.88095236
+        functionName: invokeDisableDash
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
       - time: 0.8986126
-        functionName: clearAttackMovement
-        data: 
-        objectReferenceParameter: {instanceID: 0}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.9770411
         functionName: clearAttackMovement
         data: 
         objectReferenceParameter: {instanceID: 0}

@@ -8,6 +8,9 @@ public class BasicControls : MonoBehaviour
     public bool sandbag = false;
     public int playerNumber = 0;
 
+    [Header("Main Camera Script")]
+    public BasicCamera mainCameraScript;
+
     [Header("Movement Variables")]
     public Transform rotationAnchor;
     public float rotationSmoothing = 0.5f;
@@ -23,7 +26,7 @@ public class BasicControls : MonoBehaviour
     private float jumpVeloc = 0.0f;
     private int timesJumped = 0;
     private float moveSpeed = 0.0f;
-    private bool sprinting = false;
+    public bool sprinting = false;
     private bool sprintBeforeJump = false;
     private CharacterController playerCont;
     private Vector3 moveVeloc = Vector3.zero;
@@ -36,6 +39,9 @@ public class BasicControls : MonoBehaviour
     public bool dashable = true;
     public bool dashing = false;
     public bool canDashAttack = false;
+    public bool isDashAttacking = false;
+    public float dashDelay = 0.5f;
+    public bool dashCooldown = false;
     public Vector3 dashVelocity = Vector3.zero;
 
     [Header("Combat Variables")]
@@ -46,6 +52,7 @@ public class BasicControls : MonoBehaviour
     public float initComboCooldown = 0.5f;
     public bool attackTriggered = false;
     public bool comboFinisher = false;
+    public bool attackQueued = false;
     public GameObject[] lightAttackHitboxes;
     public bool[] lightHitboxesToClear;
     public GameObject[] heavyAttackHitboxes;
@@ -56,7 +63,9 @@ public class BasicControls : MonoBehaviour
     public bool recoveryPhase = false;
     public bool attackMovementActive = false;
     public float attackMovementSpeed = 1.0f;
+    public float dashAttackSpeed = 2.0f;
     public Vector3 attackVelocity = Vector3.zero; //This is only used for calculating rotations during attacks
+    public Vector4 pushDirection = Vector4.zero;
 
     [Header("Stun and Impact Variables")]
     public float stun = 0.0f;
@@ -95,12 +104,13 @@ public class BasicControls : MonoBehaviour
             {
                 if (Input.GetButtonDown("Dash"))
                 {
-                    //Dashing overrides any other actions this frame, allows cancelling attacks
+                    //Dashing overrides any other actions this frame, allows cancelling attacks when certain percent through animation
                     finishAttack();
                     anim.SetTrigger("Dash");
                     Vector3 clampedInput = rotationAnchor.TransformDirection(new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")));
                     clampedInput = Vector3.ClampMagnitude(clampedInput, 1.0f);
-                    dashVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
+                    dashVelocity = transform.position + clampedInput;
+                    //Debug.Log("Dash Velocity" + dashVelocity);
                     transform.LookAt(dashVelocity);
 
                     dashable = false;
@@ -109,6 +119,7 @@ public class BasicControls : MonoBehaviour
                     attacking = false;
                     sprinting = false;
                     knocked = false;
+                    recoveryPhase = false;
                 }
             }
 
@@ -162,12 +173,12 @@ public class BasicControls : MonoBehaviour
                 jumpPending = true;
                 anim.SetInteger("JumpNumber", timesJumped);
             }
-            else if (Input.GetButtonDown("Jump") && timesJumped == 1 && !jumpPending)
+            /*else if (Input.GetButtonDown("Jump") && timesJumped == 1 && !jumpPending)
             {
                 originalJumpVeloc = moveVeloc + (clampedInput * moveSpeed * jumpSlowMultiplier * 0.5f);
                 timesJumped++;
                 anim.SetInteger("JumpNumber", timesJumped);
-            }
+            }*/
 
             ///////////////Grounded or Jumping Movement/////////////////
             if (playerCont.isGrounded)
@@ -180,18 +191,23 @@ public class BasicControls : MonoBehaviour
             }
 
             ///////////////Rotate Camera/////////////////
-            if (!attacking)
+            if (attacking)
+            {
+                //transform.LookAt(attackVelocity); //Not smoothing rotation during attacking for extra player control
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(attackVelocity), Time.deltaTime * rotationSmoothing * attackRotationMultiplier);
+            }
+            else if(dashing)
+            {
+                transform.LookAt(dashVelocity); //Not smoothing rotation during attacking for extra player control
+                //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dashVelocity), Time.deltaTime * rotationSmoothing );
+            }
+            else
             {
                 //transform.LookAt(transform.position + (clampedInput * moveSpeed));
                 if (clampedInput != Vector3.zero)
                 {
                     transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation((new Vector3(rotationAnchor.position.x, transform.position.y, rotationAnchor.position.z) + (clampedInput * moveSpeed)) - transform.position), Time.deltaTime * rotationSmoothing);
                 }
-            }
-            else
-            {
-                //transform.LookAt(attackVelocity); //Not smoothing rotation during attacking for extra player control
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(attackVelocity), Time.deltaTime * rotationSmoothing * attackRotationMultiplier);
             }
 
             ///////////////Input-based Sprint Reset/////////////////
@@ -223,11 +239,11 @@ public class BasicControls : MonoBehaviour
                     }
                     anim.SetBool("HeavyAttack", heavyAttack);
                     comboFinisher = false;
-                    Debug.Log("Triggering attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
+                    //Debug.Log("Triggering attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
                 }
                 else if ((Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")) && attacking && !attackAgain && !comboFinisher)
                 {
-                    Debug.Log("Setting attackAgain = true");
+                    //Debug.Log("Setting attackAgain = true");
                     CancelInvoke("finishAttack");
                     attackAgain = true;
                     if (Input.GetButtonDown("Fire1"))
@@ -248,6 +264,8 @@ public class BasicControls : MonoBehaviour
                         comboFinisher = true;
                     }
 
+                    attackQueued = true;
+
                     if (attackTriggered)
                     {
                         attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
@@ -256,8 +274,9 @@ public class BasicControls : MonoBehaviour
                         nextAction();
                     }
                 }
-                else if (attacking && attackAgain && attackTriggered)
+                else if (attacking && attackAgain && attackTriggered && attackQueued)
                 {
+                    attackQueued = false;
                     attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
                     Debug.Log("Attack Number = " + attackNum + ", attack veloc = " + attackVelocity);
                     //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(attackVelocity - transform.position), Time.deltaTime * rotationSmoothing * attackRotationMultiplier);
@@ -266,22 +285,30 @@ public class BasicControls : MonoBehaviour
             }
             else if (sprinting && (Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")))
             {
+                //Sprint attacks need to use the same framework as dash attacks due to motion in the animation 
+                //and getting rid of it by looping pose, which causes the animation to loop unless the state returns to idle
+                //But without the dash attack delay mechanic, there is a very sudden lurch when the transition happens
                 attacking = true;
                 attackNum++;
                 attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
                 anim.SetBool("IsAttacking", true);
                 anim.SetInteger("AttackNumber", attackNum);
                 anim.SetBool("IsSprinting", true);
-                Debug.Log("Triggering sprint attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
+                isDashAttacking = true;
+                //Debug.Log("Triggering sprint attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
             }
         }
-        else if (dashing && (Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")))
+        else if (dashing && canDashAttack && !dashCooldown && (Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")))
         {
             attacking = true;
+            isDashAttacking = true;
+            canDashAttack = false;
             attackNum++;
             attackVelocity = transform.TransformDirection(Vector3.forward) * moveSpeed * 0.15f;
             anim.SetTrigger("DashAttack");
-            Debug.Log("Triggering sprint attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
+            anim.SetBool("IsAttacking", true);
+            //Debug.Log("Triggering dash attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
+            activateAttackMovement(dashAttackSpeed);
         }
 
         ///////////////Calculate Stun/////////////////
@@ -358,7 +385,7 @@ public class BasicControls : MonoBehaviour
                 }
             }
         }
-        else if (!attacking)
+        else if (!attacking && !dashing)
         {
             triggeredImpact = false;
             totalVeloc += moveVeloc;
@@ -376,14 +403,28 @@ public class BasicControls : MonoBehaviour
             {
                 totalVeloc += transform.TransformDirection(Vector3.forward);
                 totalVeloc *= attackMovementSpeed;
-            } else if (dashing)
+            } else if (dashing && !dashCooldown)
             {
                 totalVeloc += transform.TransformDirection(Vector3.forward);
                 totalVeloc *= dashSpeed;
+            } else if (dashCooldown)
+            {
+                totalVeloc = new Vector3(0, -1, 0);
+                anim.SetFloat("MovementSpeed", 0.0f);
             }
+
+            if (pushDirection.magnitude > 0)
+            {
+                totalVeloc += new Vector3(pushDirection.x, pushDirection.y, pushDirection.z) * pushDirection.w;
+                pushDirection = Vector4.Lerp(pushDirection, Vector4.zero, Time.deltaTime * 15);
+            }
+
             playerCont.Move(totalVeloc * Time.deltaTime);
 
-            anim.SetFloat("MovementSpeed", moveVeloc.magnitude / (initSpeed * sprintSpeedMultiplier));
+            if (!dashCooldown)
+            {
+                anim.SetFloat("MovementSpeed", moveVeloc.magnitude / (initSpeed * sprintSpeedMultiplier));
+            }
             anim.SetBool("IsGrounded", playerCont.isGrounded);
         }
 
@@ -413,8 +454,9 @@ public class BasicControls : MonoBehaviour
                 sprintBeforeJump = true;
             sprinting = false;
             jumpVeloc = initJumpSpeed;
+            mainCameraScript.setCameraZoom(0.2f);
         }
-        else if (timesJumped == 2)
+        /*else if (timesJumped == 2)
         {
             if (jumpVeloc > 0)
             {
@@ -427,13 +469,15 @@ public class BasicControls : MonoBehaviour
             jumpVeloc += secondJumpSpeed;
             playerCont.slopeLimit = 250;
             playerCont.center = new Vector3(0, 1.2f, 0);
-        }
+            mainCameraScript.setCameraZoom(1.5f);
+        }*/
     }
 
     void resetControllerHeight()
     {
         playerCont.slopeLimit = 110;
         playerCont.center = new Vector3(0, 0.85f, 0);
+        mainCameraScript.setCameraZoom(0.0f);
     }
 
     /////////////// Attack Code /////////////////
@@ -444,37 +488,28 @@ public class BasicControls : MonoBehaviour
 
     void triggerLightAttack(int animAttackNum)
     {
-        Debug.Log("Calling triggerLightAttack");
-
         lightAttackHitboxes[animAttackNum - 1].SetActive(true);
         lightHitboxesToClear[animAttackNum - 1] = true;
         attackTriggered = true;
-
-        Debug.Log("Invoking clearHitboxes");
+        
         Invoke("clearHitboxes", 0.25f);
     }
 
     void triggerHeavyAttack(int animAttackNum)
     {
-        Debug.Log("Calling triggerHeavyAttack");
-
         heavyAttackHitboxes[animAttackNum - 1].SetActive(true);
         heavyHitboxesToClear[animAttackNum - 1] = true;
         attackTriggered = true;
-
-        Debug.Log("Invoking clearHitboxes");
+        
         Invoke("clearHitboxes", 0.25f);
     }
 
     void triggerSprintAttack(int animAttackNum)
-    {
-        Debug.Log("Calling triggerSprintAttack");
-
+    { 
         sprintAttackHitboxes[animAttackNum - 1].SetActive(true);
         sprintHitboxesToClear[animAttackNum - 1] = true;
         attackTriggered = true;
-
-        Debug.Log("Invoking clearHitboxes");
+        
         Invoke("clearHitboxes", 0.25f);
     }
 
@@ -528,12 +563,13 @@ public class BasicControls : MonoBehaviour
 
     void nextAction()
     {
-        Debug.Log("Calling nextAction");
+        //Debug.Log("Calling nextAction");
         if (attackAgain)
         {
             attackNum++;
             if (attackNum < 5)
             {
+                attackTriggered = false;
                 dashable = false;
                 anim.SetBool("IsAttacking", true);
                 anim.SetInteger("AttackNumber", attackNum);
@@ -542,13 +578,13 @@ public class BasicControls : MonoBehaviour
             }
             else
             {
-                Debug.Log("End of combo, invoking finishAttack in " + initComboCooldown + " seconds");
+                //Debug.Log("End of combo, invoking finishAttack in " + initComboCooldown + " seconds");
                 Invoke("finishAttack", initComboCooldown);
             }
         }
         else
         {
-            Debug.Log("AttackAgain = false, invoking finishAttack in " + initComboCooldown + " seconds");
+            //Debug.Log("AttackAgain = false, invoking finishAttack in " + initComboCooldown + " seconds");
             Invoke("finishAttack", initComboCooldown);
         }
     }
@@ -557,7 +593,7 @@ public class BasicControls : MonoBehaviour
     {
         if (attackTriggered)
         {
-            Debug.Log("Invoking finish attack");
+            //Debug.Log("Invoking finish attack");
             Invoke("finishAttack", initComboCooldown);
         }
     }
@@ -571,12 +607,14 @@ public class BasicControls : MonoBehaviour
 
     void finishAttack()
     {
-        Debug.Log("Calling finishAttack");
+        //Debug.Log("Calling finishAttack");
         anim.SetBool("IsAttacking", false);
         anim.SetBool("IsSprinting", false);
         attacking = false;
         attackAgain = false;
         attackTriggered = false;
+        isDashAttacking = false;
+        dashing = false;
         dashable = true;
         attackNum = 0;
         anim.SetInteger("AttackNumber", attackNum);
@@ -595,10 +633,20 @@ public class BasicControls : MonoBehaviour
         canDashAttack = false;
     }
 
+    public void invokeDisableDash()
+    {
+        if (!isDashAttacking)
+        {
+            Invoke("disableDash", dashDelay);
+            dashCooldown = true;
+        }
+    }
+
     public void disableDash()
     {
         dashing = false;
         dashable = true;
+        dashCooldown = false;
     }
 
     /////////////// Impact Code /////////////////
@@ -614,6 +662,7 @@ public class BasicControls : MonoBehaviour
             }
             impact += (direction.normalized * force / mass) * impactMultiplier;
             impactOrigin = impactOriginVec;
+            
         }
     }
 
@@ -640,11 +689,18 @@ public class BasicControls : MonoBehaviour
         }
     }
 
+    public void addPushback(Vector3 impact, float force)
+    {
+        if (!(impact.magnitude > impactThreshold))
+        {
+            pushDirection = new Vector4(impact.x, transform.position.y, impact.z, force);
+        }
+    }
+
     /////////////// Sandbag Code /////////////////
 
     void applySandbag()
     {
-        Debug.Log("Applying Sandbag");
         sandbag = true;
         finishAttack();
         sprinting = false;
@@ -663,7 +719,6 @@ public class BasicControls : MonoBehaviour
 
     void resetSandbag()
     {
-        Debug.Log("Called resetSandbag");
         if(playerNumber != 0)
             sandbag = false;
         triggeredSandbag = false;
