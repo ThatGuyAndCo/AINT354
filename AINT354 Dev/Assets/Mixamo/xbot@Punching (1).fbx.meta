@@ -80,7 +80,7 @@ ModelImporter:
         functionName: invokeFinishAttack
         data: 
         objectReferenceParameter: {instanceID: 0}
-        floatParameter: 0
+        floatParameter: 0.15
         intParameter: 0
         messageOptions: 0
       - time: 0.3028169

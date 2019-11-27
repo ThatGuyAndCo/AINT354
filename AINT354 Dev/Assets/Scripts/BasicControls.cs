@@ -6,7 +6,12 @@ public class BasicControls : MonoBehaviour
 {
     [Header("Player Settings")]
     public bool sandbag = false;
+    public bool invincible = false;
     public int playerNumber = 0;
+
+    public float respawnDelay = 3.0f;
+    public float invincibilityCooldown = 5.0f;
+    public bool dead = false;
 
     [Header("Main Camera Script")]
     public BasicCamera mainCameraScript;
@@ -69,7 +74,9 @@ public class BasicControls : MonoBehaviour
 
     [Header("Stun and Impact Variables")]
     public float stun = 0.0f;
+    public float maxHealth = 100.0f;
     public float health = 100.0f;
+    public float baseImpactMultiplier = 1.0f;
     public float impactMultiplier = 1.0f;
     public float mass = 3.0f;
 
@@ -98,7 +105,7 @@ public class BasicControls : MonoBehaviour
 
         //Allows bypassing of sandbag for certain inputs, i.e. recovery dodge and recovery attack
         //Timing for this is set by method call in animation
-        if (playerNumber != 0)
+        if (playerNumber != 0 && !dead)
         {
             if (dashable)
             {
@@ -132,12 +139,16 @@ public class BasicControls : MonoBehaviour
 
         //Handle all code that checks for inputs in following block
         //This allows the creation of a sandbag character and allows Stun and Knockback to disable the player for a short time
-        if (!sandbag && !dashing)
+        if (!sandbag && !dashing && !dead)
         {
             //float mouseDir = Input.GetAxis("Camera X");
             Vector3 clampedInput = rotationAnchor.TransformDirection(new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")));
             clampedInput = Vector3.ClampMagnitude(clampedInput, 1.0f);
             
+            //Rotate towards locked-on target if no input registered, overwrite the normal rotation of an attack direction
+            if (clampedInput.magnitude < 0.01f && mainCameraScript.lockedOn)
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation((new Vector3(rotationAnchor.position.x, transform.position.y, rotationAnchor.position.z) + (rotationAnchor.TransformDirection(Vector3.forward) * moveSpeed)) - transform.position), Time.deltaTime * rotationSmoothing);
+
             ///////////////Sprinting/////////////////
             if (!sprinting && Input.GetButtonDown("Sprint") && playerCont.isGrounded && !attacking)
             {
@@ -224,7 +235,10 @@ public class BasicControls : MonoBehaviour
                 {
                     attacking = true;
                     attackNum++;
-                    attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
+                    if (clampedInput.magnitude < 0.01f && mainCameraScript.lockedOn)
+                        attackVelocity = rotationAnchor.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
+                    else
+                        attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
                     //transform.LookAt(transform.position + (clampedInput * moveSpeed));
                     anim.SetBool("IsAttacking", true);
                     anim.SetInteger("AttackNumber", attackNum);
@@ -268,7 +282,10 @@ public class BasicControls : MonoBehaviour
 
                     if (attackTriggered)
                     {
-                        attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
+                        if (clampedInput.magnitude < 0.01f && mainCameraScript.lockedOn)
+                            attackVelocity = rotationAnchor.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
+                        else
+                            attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
                         Debug.Log("Attack Number = " + attackNum + ", attack veloc = " + attackVelocity);
                         //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(attackVelocity - transform.position), Time.deltaTime * rotationSmoothing * attackRotationMultiplier);
                         nextAction();
@@ -277,7 +294,10 @@ public class BasicControls : MonoBehaviour
                 else if (attacking && attackAgain && attackTriggered && attackQueued)
                 {
                     attackQueued = false;
-                    attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
+                    if (clampedInput.magnitude < 0.01f && mainCameraScript.lockedOn)
+                        attackVelocity = rotationAnchor.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
+                    else
+                        attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
                     Debug.Log("Attack Number = " + attackNum + ", attack veloc = " + attackVelocity);
                     //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(attackVelocity - transform.position), Time.deltaTime * rotationSmoothing * attackRotationMultiplier);
                     nextAction();
@@ -290,13 +310,17 @@ public class BasicControls : MonoBehaviour
                 //But without the dash attack delay mechanic, there is a very sudden lurch when the transition happens
                 attacking = true;
                 attackNum++;
-                attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
+                if (clampedInput.magnitude < 0.01f && mainCameraScript.lockedOn)
+                    attackVelocity = rotationAnchor.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
+                else
+                    attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
                 anim.SetBool("IsAttacking", true);
                 anim.SetInteger("AttackNumber", attackNum);
                 anim.SetBool("IsSprinting", true);
                 isDashAttacking = true;
                 //Debug.Log("Triggering sprint attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
             }
+
         }
         else if (dashing && canDashAttack && !dashCooldown && (Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")))
         {
@@ -332,9 +356,15 @@ public class BasicControls : MonoBehaviour
             knocked = true;
         }
 
+        //Cumulate gravity, but reset if the player isnt airborne
         if (jumpVeloc > (-1 * gravity))
         {
             jumpVeloc -= gravity * Time.deltaTime;
+        }
+
+        if (playerCont.isGrounded)
+        {
+            jumpVeloc = -0.1f;
         }
 
         //Moving forward with a Y velocity of 0 can cause the character controller to raise ever so slightly, and isGrounded to become false
@@ -589,12 +619,17 @@ public class BasicControls : MonoBehaviour
         }
     }
 
-    void invokeFinishAttack()
+    //Allows overwriting for certain attacks, whilst keeping default cooldown for others
+    void invokeFinishAttack(float delay)
     {
+        if(delay == 0)
+        {
+            delay = initComboCooldown;
+        }
         if (attackTriggered)
         {
             //Debug.Log("Invoking finish attack");
-            Invoke("finishAttack", initComboCooldown);
+            Invoke("finishAttack", delay);
         }
     }
 
@@ -653,7 +688,7 @@ public class BasicControls : MonoBehaviour
 
     public void addImpact(Vector3 direction, float force, Vector3 impactOriginVec)
     {
-        if (!dashing)
+        if (!dashing && !invincible)
         {
             direction.Normalize();
             if (direction.y < 0)
@@ -668,7 +703,7 @@ public class BasicControls : MonoBehaviour
 
     public void addStun(float force)
     {
-        if (!dashing)
+        if (!dashing && !invincible)
         {
             stun += force;
         }
@@ -676,14 +711,20 @@ public class BasicControls : MonoBehaviour
 
     public void addDamage(float damage)
     {
-        if (!dashing){        
+        if (!dashing && !invincible)
+        {        
             health -= damage;
+            if(health <= 0)
+            {
+                health = 0;
+                die("damage");
+            }
         }
     }
 
     public void addImpactMultiplierDamage(float damage)
     {
-        if (!dashing)
+        if (!dashing && !invincible)
         {
             impactMultiplier += damage;
         }
@@ -691,7 +732,7 @@ public class BasicControls : MonoBehaviour
 
     public void addPushback(Vector3 impact, float force)
     {
-        if (!(impact.magnitude > impactThreshold))
+        if (!(impact.magnitude > impactThreshold) && !invincible)
         {
             pushDirection = new Vector4(impact.x, transform.position.y, impact.z, force);
         }
@@ -737,5 +778,44 @@ public class BasicControls : MonoBehaviour
     void triggerKnockbackOnCommand()
     {
         addImpact(transform.TransformDirection(-Vector3.forward), 25.0f, transform.position + transform.TransformDirection(Vector3.forward));
+    }
+
+    /////////////// Death Code /////////////////
+
+        //Add flashing effect to materials to show player is invincible, or a shield around them
+
+    public void die(string cause)
+    {
+        if (!invincible || cause == "killzone")
+        {
+            //Respawn in middle of arena
+            //Set invincible
+            applySandbag(); //May as well reuse code
+            invincible = true;
+            dead = true;
+            mainCameraScript.clearLockon();
+            anim.SetBool("Dead", true);
+            anim.SetTrigger("DeathTrigger");
+            //Show death message based on which player number died, play animation and particle effect
+            Invoke("respawn", respawnDelay);
+        }
+    }
+
+    void respawn()
+    {
+        moveVeloc = Vector3.zero;
+        originalJumpVeloc = Vector3.zero;
+        transform.position = new Vector3(0.52f, 0.5f, 2.099f);
+        resetSandbag();
+        anim.SetBool("Dead", false);
+        health = maxHealth;
+        impactMultiplier = baseImpactMultiplier;
+        dead = false;
+        Invoke("resetInvincible", invincibilityCooldown);
+    }
+
+    void resetInvincible()
+    {
+        invincible = false;
     }
 }
