@@ -8,6 +8,7 @@ public class BasicControls : MonoBehaviour
     public bool sandbag = false;
     public bool invincible = false;
     public int playerNumber = 0;
+    public UIElements playerUI;
 
     public float respawnDelay = 3.0f;
     public float invincibilityCooldown = 5.0f;
@@ -96,6 +97,7 @@ public class BasicControls : MonoBehaviour
         moveSpeed = initSpeed;
         playerCont = GetComponent<CharacterController>();
         anim = GetComponent<Animator>();
+        playerUI.initHPBar(maxHealth, health);
     }
 
     // Update is called once per frame
@@ -714,6 +716,7 @@ public class BasicControls : MonoBehaviour
         if (!dashing && !invincible)
         {        
             health -= damage;
+            playerUI.updateHealth(maxHealth, health);
             if(health <= 0)
             {
                 health = 0;
@@ -793,6 +796,11 @@ public class BasicControls : MonoBehaviour
             applySandbag(); //May as well reuse code
             invincible = true;
             dead = true;
+
+            if(cause == "killzone")
+                health = 0;
+
+            playerUI.updateHealth(maxHealth, health);
             mainCameraScript.clearLockon();
             anim.SetBool("Dead", true);
             anim.SetTrigger("DeathTrigger");
@@ -809,6 +817,7 @@ public class BasicControls : MonoBehaviour
         resetSandbag();
         anim.SetBool("Dead", false);
         health = maxHealth;
+        playerUI.updateHealth(maxHealth, health);
         impactMultiplier = baseImpactMultiplier;
         dead = false;
         Invoke("resetInvincible", invincibilityCooldown);
