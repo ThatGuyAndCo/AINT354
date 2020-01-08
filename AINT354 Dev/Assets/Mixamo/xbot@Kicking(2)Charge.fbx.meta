@@ -1,11 +1,11 @@
 fileFormatVersion: 2
-guid: 98ffd6da2cc92db43a41bfdad8ec308a
+guid: f204407bb86d1c3499bedb0ae330c2db
 ModelImporter:
   serializedVersion: 26
   internalIDToNameTable:
   - first:
       74: -203655887218126122
-    second: Fall
+    second: Kicking(2)Charge
   externalObjects: {}
   materials:
     importMaterials: 1
@@ -35,19 +35,19 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Fall
+      name: Kicking(2)Charge
       takeName: mixamo.com
       internalID: 0
-      firstFrame: 38
-      lastFrame: 40
+      firstFrame: 0
+      lastFrame: 22
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 1
+      loopTime: 0
+      loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
       loopBlendPositionXZ: 0
@@ -60,7 +60,7 @@ ModelImporter:
       curves: []
       events:
       - time: 0
-        functionName: finishJumpAttack
+        functionName: nextAttack
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0

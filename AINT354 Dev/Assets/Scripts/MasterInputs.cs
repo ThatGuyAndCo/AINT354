@@ -9,6 +9,7 @@ public class MasterInputs : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        QualitySettings.vSyncCount = 1;
     }
 
     // Update is called once per frame

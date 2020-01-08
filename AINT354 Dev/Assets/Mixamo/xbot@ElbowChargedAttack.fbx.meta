@@ -1,11 +1,11 @@
 fileFormatVersion: 2
-guid: 98ffd6da2cc92db43a41bfdad8ec308a
+guid: bbf2bb1c251547c479088c83e227d4f6
 ModelImporter:
   serializedVersion: 26
   internalIDToNameTable:
   - first:
       74: -203655887218126122
-    second: Fall
+    second: ElbowChargedAttack
   externalObjects: {}
   materials:
     importMaterials: 1
@@ -35,19 +35,19 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Fall
+      name: ElbowChargedAttack
       takeName: mixamo.com
       internalID: 0
-      firstFrame: 38
-      lastFrame: 40
+      firstFrame: 0
+      lastFrame: 50
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 1
+      loopTime: 0
+      loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
       loopBlendPositionXZ: 0
@@ -59,11 +59,25 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0
-        functionName: finishJumpAttack
+      - time: 0.33464566
+        functionName: adjustInput
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.38582677
+        functionName: triggerChargedLightAttack
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 3
+        messageOptions: 0
+      - time: 0.87007874
+        functionName: invokeFinishAttack
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0.4
         intParameter: 0
         messageOptions: 0
       transformMask: []

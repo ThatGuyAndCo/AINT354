@@ -80,18 +80,18 @@ ModelImporter:
         floatParameter: 0
         intParameter: 3
         messageOptions: 0
-      - time: 0.7857143
-        functionName: invokeFinishAttack
-        data: 
-        objectReferenceParameter: {instanceID: 0}
-        floatParameter: 0.45
-        intParameter: 0
-        messageOptions: 0
       - time: 0.42957747
         functionName: clearAttackMovement
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.75421834
+        functionName: invokeFinishAttack
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0.55
         intParameter: 0
         messageOptions: 0
       transformMask: []

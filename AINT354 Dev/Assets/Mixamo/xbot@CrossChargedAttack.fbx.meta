@@ -1,11 +1,11 @@
 fileFormatVersion: 2
-guid: 98ffd6da2cc92db43a41bfdad8ec308a
+guid: 8f2e9f7940531a649b07584b3cfefc91
 ModelImporter:
   serializedVersion: 26
   internalIDToNameTable:
   - first:
       74: -203655887218126122
-    second: Fall
+    second: CrossChargedAttack
   externalObjects: {}
   materials:
     importMaterials: 1
@@ -35,19 +35,19 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Fall
+      name: CrossChargedAttack
       takeName: mixamo.com
       internalID: 0
-      firstFrame: 38
-      lastFrame: 40
+      firstFrame: 0
+      lastFrame: 60
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 1
+      loopTime: 0
+      loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
       loopBlendPositionXZ: 0
@@ -59,8 +59,36 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0
-        functionName: finishJumpAttack
+      - time: 0.28968254
+        functionName: adjustInput
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.4484127
+        functionName: activateAttackMovement
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 7
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.52380955
+        functionName: triggerChargedLightAttack
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 4
+        messageOptions: 0
+      - time: 0.63492066
+        functionName: clearAttackMovement
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.8611111
+        functionName: invokeFinishAttack
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0

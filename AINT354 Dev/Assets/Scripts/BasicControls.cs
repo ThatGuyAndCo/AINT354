@@ -19,6 +19,7 @@ public class BasicControls : MonoBehaviour
 
     [Header("Movement Variables")]
     public Transform rotationAnchor;
+    public Transform rotationTarget;
     public float rotationSmoothing = 0.5f;
     public float attackRotationMultiplier = 2.0f;
     public float initSpeed = 3.0f;
@@ -29,7 +30,7 @@ public class BasicControls : MonoBehaviour
     public float jumpSlowMultiplier = 1.0f;
     public float sprintSpeedMultiplier = 2.0f;
 
-    private float jumpVeloc = 0.0f;
+    public float jumpVeloc = 0.0f;
     private int timesJumped = 0;
     private float moveSpeed = 0.0f;
     public bool sprinting = false;
@@ -39,6 +40,7 @@ public class BasicControls : MonoBehaviour
     private Vector3 originalJumpVeloc = Vector3.zero;
     private Animator anim;
     private bool jumpPending = false;
+    public bool jumpAttackGravityDisabled = false;
 
     [Header("Dashing Variables")]
     public float dashSpeed = 9.0f;
@@ -55,16 +57,11 @@ public class BasicControls : MonoBehaviour
     public int attackNum = 0;
     public bool attackAgain = false;
     public bool heavyAttack = false;
+    public bool jumpAttack = false;
     public float initComboCooldown = 0.5f;
     public bool attackTriggered = false;
     public bool comboFinisher = false;
     public bool attackQueued = false;
-    public GameObject[] lightAttackHitboxes;
-    public bool[] lightHitboxesToClear;
-    public GameObject[] heavyAttackHitboxes;
-    public bool[] heavyHitboxesToClear;
-    public GameObject[] sprintAttackHitboxes;
-    public bool[] sprintHitboxesToClear;
     public bool triggeredSandbag = false;
     public bool recoveryPhase = false;
     public bool attackMovementActive = false;
@@ -90,6 +87,20 @@ public class BasicControls : MonoBehaviour
     private bool triggeredImpact = false;
     private Vector3 impactOrigin = Vector3.zero;
 
+    [Header("Hitboxes")]
+    public GameObject[] lightAttackHitboxes;
+    public bool[] lightHitboxesToClear;
+    public GameObject[] heavyAttackHitboxes;
+    public bool[] heavyHitboxesToClear;
+    public GameObject[] chargedLightAttackHitboxes;
+    public bool[] chargedLightHitboxesToClear;
+    public GameObject[] chargedHeavyAttackHitboxes;
+    public bool[] chargedHeavyHitboxesToClear;
+    public GameObject[] sprintAttackHitboxes;
+    public bool[] sprintHitboxesToClear;
+
+    public Vector3 totalVeloc;
+
 
     // Start is called before the first frame update
     void Start()
@@ -103,7 +114,15 @@ public class BasicControls : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Vector3 totalVeloc;
+        //Vector3 totalVeloc;
+
+        if (respawnMove || (!sandbag && transform.position.y < -20) || transform.position.y < -500)
+        {
+            Debug.Log("**************Respawning");//Sometimes transform.position does not update the object, so recheck every frame until it does update the position
+            transform.position = new Vector3(0.52f, 2.5f, 2.099f);
+            respawnMove = false;
+            return;
+        }
 
         //Allows bypassing of sandbag for certain inputs, i.e. recovery dodge and recovery attack
         //Timing for this is set by method call in animation
@@ -143,6 +162,21 @@ public class BasicControls : MonoBehaviour
         //This allows the creation of a sandbag character and allows Stun and Knockback to disable the player for a short time
         if (!sandbag && !dashing && !dead)
         {
+            //Initially check if an attack is being charged. If it is and the button is no longer held, transition to normal attack, then carry on
+            if (attacking && anim.GetBool("Charging"))
+            {
+                bool keepCharging = testChargeAttack(heavyAttack);
+                anim.SetBool("Charging", keepCharging);
+            }
+            else if(attacking) 
+            {
+                anim.SetBool("Charging", false);
+            }
+            else//Ensure the charging variable is in its default state
+            {
+                anim.SetBool("Charging", true);
+            }
+
             //float mouseDir = Input.GetAxis("Camera X");
             Vector3 clampedInput = rotationAnchor.TransformDirection(new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")));
             clampedInput = Vector3.ClampMagnitude(clampedInput, 1.0f);
@@ -219,7 +253,8 @@ public class BasicControls : MonoBehaviour
                 //transform.LookAt(transform.position + (clampedInput * moveSpeed));
                 if (clampedInput != Vector3.zero)
                 {
-                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation((new Vector3(rotationAnchor.position.x, transform.position.y, rotationAnchor.position.z) + (clampedInput * moveSpeed)) - transform.position), Time.deltaTime * rotationSmoothing);
+                    Vector3 calcLookRot = (new Vector3(rotationTarget.position.x, transform.position.y, rotationTarget.position.z) + (clampedInput * moveSpeed)) - transform.position;
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(calcLookRot), Time.deltaTime * rotationSmoothing);
                 }
             }
 
@@ -257,7 +292,7 @@ public class BasicControls : MonoBehaviour
                     comboFinisher = false;
                     //Debug.Log("Triggering attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
                 }
-                else if ((Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")) && attacking && !attackAgain && !comboFinisher)
+                else if ((Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")) && attacking && !attackAgain && !comboFinisher && !jumpAttack)
                 {
                     //Debug.Log("Setting attackAgain = true");
                     CancelInvoke("finishAttack");
@@ -322,6 +357,25 @@ public class BasicControls : MonoBehaviour
                 isDashAttacking = true;
                 //Debug.Log("Triggering sprint attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
             }
+            else if (!playerCont.isGrounded && (Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")))
+            {
+                //Sprint attacks need to use the same framework as dash attacks due to motion in the animation 
+                //and getting rid of it by looping pose, which causes the animation to loop unless the state returns to idle
+                //But without the dash attack delay mechanic, there is a very sudden lurch when the transition happens
+                attacking = true;
+                attackNum++;
+                if (clampedInput.magnitude < 0.01f && mainCameraScript.lockedOn)
+                    attackVelocity = rotationAnchor.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
+                else
+                    attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.15f;
+                if (Input.GetButtonDown("Fire1"))
+                    anim.SetBool("HeavyAttack", false);
+                else
+                    anim.SetBool("HeavyAttack", true);
+                jumpAttack = true;
+                anim.SetBool("IsAttacking", true);
+                //Debug.Log("Triggering sprint attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
+            }
 
         }
         else if (dashing && canDashAttack && !dashCooldown && (Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")))
@@ -331,8 +385,8 @@ public class BasicControls : MonoBehaviour
             canDashAttack = false;
             attackNum++;
             attackVelocity = transform.TransformDirection(Vector3.forward) * moveSpeed * 0.15f;
-            anim.SetTrigger("DashAttack");
             anim.SetBool("IsAttacking", true);
+            anim.SetBool("DashAttack", true);
             //Debug.Log("Triggering dash attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
             activateAttackMovement(dashAttackSpeed);
         }
@@ -358,21 +412,24 @@ public class BasicControls : MonoBehaviour
             knocked = true;
         }
 
-        //Cumulate gravity, but reset if the player isnt airborne
-        if (jumpVeloc > (-1 * gravity))
+        //Cumulate gravity if airborne even when air heavy attacking, reset if the player isnt airborne or if air light attacking
+        if ((playerCont.isGrounded && jumpVeloc < -0.1f) || jumpAttackGravityDisabled)
+        {
+            jumpVeloc = -0.1f;
+        }
+        else if (jumpVeloc > (-1 * gravity) || jumpAttackGravityDisabled == false)
         {
             jumpVeloc -= gravity * Time.deltaTime;
         }
 
-        if (playerCont.isGrounded)
-        {
-            jumpVeloc = -0.1f;
-        }
+
 
         //Moving forward with a Y velocity of 0 can cause the character controller to raise ever so slightly, and isGrounded to become false
         //But to allow jumping attacks, we don't want gravity, so setting a very small negative Y value in the else fixes the issue
-        if (!attacking)
+        if (!attacking || (attacking && !jumpAttackGravityDisabled))
             totalVeloc = jumpVeloc * Vector3.up;
+        else if (attacking && jumpAttackGravityDisabled)
+            totalVeloc = (jumpVeloc * Vector3.up) * 0.1f;
         else
             totalVeloc = new Vector3(0, -0.1f, 0);
 
@@ -417,7 +474,7 @@ public class BasicControls : MonoBehaviour
                 }
             }
         }
-        else if (!attacking && !dashing)
+        else if ((!attacking || (attacking && !playerCont.isGrounded)) && !dashing)
         {
             triggeredImpact = false;
             totalVeloc += moveVeloc;
@@ -429,16 +486,21 @@ public class BasicControls : MonoBehaviour
 
         ///////////////Apply Movement/////////////////
 
-        if (!attacking || attackMovementActive)
+        if (!attacking || attackMovementActive || (!playerCont.isGrounded && !jumpAttackGravityDisabled))
         {
             if (attackMovementActive)
             {
-                totalVeloc += transform.TransformDirection(Vector3.forward);
-                totalVeloc *= attackMovementSpeed;
+                if (!playerCont.isGrounded)
+                {
+                    totalVeloc += transform.TransformDirection(Vector3.forward) * attackMovementSpeed * 0.2f; //Dont apply as much momentum to aerial light attacks
+                }
+                else {
+                    totalVeloc += transform.TransformDirection(Vector3.forward);
+                    totalVeloc *= attackMovementSpeed;
+                }
             } else if (dashing && !dashCooldown)
             {
-                totalVeloc += transform.TransformDirection(Vector3.forward);
-                totalVeloc *= dashSpeed;
+                totalVeloc += transform.TransformDirection(Vector3.forward) * dashSpeed;
             } else if (dashCooldown)
             {
                 totalVeloc = new Vector3(0, -1, 0);
@@ -469,11 +531,10 @@ public class BasicControls : MonoBehaviour
             moveSpeed = initSpeed;
             sprinting = sprintBeforeJump;
             sprintBeforeJump = false;
-            playerCont.slopeLimit = 110;
+            playerCont.slopeLimit = 75;
             playerCont.center = new Vector3(0, 0.85f, 0);
         }
     }
-
 
     /////////////// Jump Code /////////////////
 
@@ -507,7 +568,7 @@ public class BasicControls : MonoBehaviour
 
     void resetControllerHeight()
     {
-        playerCont.slopeLimit = 110;
+        playerCont.slopeLimit = 75;
         playerCont.center = new Vector3(0, 0.85f, 0);
         mainCameraScript.setCameraZoom(0.0f);
     }
@@ -523,7 +584,10 @@ public class BasicControls : MonoBehaviour
         lightAttackHitboxes[animAttackNum - 1].SetActive(true);
         lightHitboxesToClear[animAttackNum - 1] = true;
         attackTriggered = true;
-        
+
+        if(!playerCont.isGrounded)
+            jumpAttackGravityDisabled = true;
+
         Invoke("clearHitboxes", 0.25f);
     }
 
@@ -536,6 +600,24 @@ public class BasicControls : MonoBehaviour
         Invoke("clearHitboxes", 0.25f);
     }
 
+    void triggerChargedLightAttack(int animAttackNum) //Can only pass 1 variable via animation event so need to split methods for normal and charged attack
+    {
+        chargedLightAttackHitboxes[animAttackNum - 1].SetActive(true);
+        chargedLightHitboxesToClear[animAttackNum - 1] = true;
+        attackTriggered = true;
+
+        Invoke("clearHitboxes", 0.25f);
+    }
+
+    void triggerChargedHeavyAttack(int animAttackNum)
+    {
+        chargedHeavyAttackHitboxes[animAttackNum - 1].SetActive(true);
+        chargedHeavyHitboxesToClear[animAttackNum - 1] = true;
+        attackTriggered = true;
+
+        Invoke("clearHitboxes", 0.25f);
+    }
+
     void triggerSprintAttack(int animAttackNum)
     { 
         sprintAttackHitboxes[animAttackNum - 1].SetActive(true);
@@ -543,6 +625,20 @@ public class BasicControls : MonoBehaviour
         attackTriggered = true;
         
         Invoke("clearHitboxes", 0.25f);
+    }
+
+    /////////////// Charge Attack Code /////////////////
+
+    bool testChargeAttack(bool isHeavyAttack)
+    {
+        bool keepCharging = true;
+
+        if (!isHeavyAttack)
+            keepCharging = Input.GetButton("Fire1");
+        else
+            keepCharging = Input.GetButton("Fire2");
+
+        return keepCharging;
     }
 
     //As animations can be interrupted, need to invoke a clearing method after a short period of time
@@ -571,6 +667,24 @@ public class BasicControls : MonoBehaviour
             }
         }
 
+        for (int i = 0; i < chargedLightHitboxesToClear.Length; i++)
+        {
+            if (chargedLightHitboxesToClear[i] == true)
+            {
+                chargedLightAttackHitboxes[i].SetActive(false);
+                chargedLightHitboxesToClear[i] = false;
+            }
+        }
+
+        for (int i = 0; i < chargedHeavyHitboxesToClear.Length; i++)
+        {
+            if (chargedHeavyHitboxesToClear[i] == true)
+            {
+                chargedHeavyAttackHitboxes[i].SetActive(false);
+                chargedHeavyHitboxesToClear[i] = false;
+            }
+        }
+
         for (int i = 0; i < sprintHitboxesToClear.Length; i++)
         {
             if (sprintHitboxesToClear[i] == true)
@@ -590,7 +704,9 @@ public class BasicControls : MonoBehaviour
 
     void clearAttackMovement()
     {
+        Debug.Log("Clear attack movement called");
         attackMovementActive = false;
+        jumpAttackGravityDisabled = false;
     }
 
     void nextAction()
@@ -604,6 +720,7 @@ public class BasicControls : MonoBehaviour
                 attackTriggered = false;
                 dashable = false;
                 anim.SetBool("IsAttacking", true);
+                anim.SetBool("Charging", true);
                 anim.SetInteger("AttackNumber", attackNum);
                 anim.SetBool("HeavyAttack", heavyAttack);
                 anim.SetBool("Finisher", comboFinisher);
@@ -635,11 +752,34 @@ public class BasicControls : MonoBehaviour
         }
     }
 
+    void finishJumpAttack()
+    {
+        if (attackTriggered)
+        {
+            clearAttackMovement();
+            finishAttack();
+            clearAttackMovement();
+        }
+    }
+
     void nextAttack()
     {
         attackTriggered = false;
         attackAgain = false;
+        clearAttackMovement();
         CancelInvoke("finishAttack");
+        adjustInput();
+    }
+
+    void adjustInput()
+    {
+        Vector3 clampedInput = rotationAnchor.TransformDirection(new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")));
+        clampedInput = Vector3.ClampMagnitude(clampedInput, 1.0f);
+
+        if (clampedInput.magnitude < 0.01f && mainCameraScript.lockedOn)
+            attackVelocity = rotationAnchor.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.35f;
+        else
+            attackVelocity = transform.TransformDirection(Vector3.forward) + clampedInput * moveSpeed * 0.35f;
     }
 
     void finishAttack()
@@ -647,8 +787,11 @@ public class BasicControls : MonoBehaviour
         //Debug.Log("Calling finishAttack");
         anim.SetBool("IsAttacking", false);
         anim.SetBool("IsSprinting", false);
+        anim.SetBool("Charging", true);
+        jumpAttackGravityDisabled = false;
         attacking = false;
         attackAgain = false;
+        jumpAttack = false;
         attackTriggered = false;
         isDashAttacking = false;
         dashing = false;
@@ -809,11 +952,12 @@ public class BasicControls : MonoBehaviour
         }
     }
 
+    private bool respawnMove = false; //Sometimes this method does not overwrite the player's current position, so moved to update loop
     void respawn()
     {
         moveVeloc = Vector3.zero;
         originalJumpVeloc = Vector3.zero;
-        transform.position = new Vector3(0.52f, 0.5f, 2.099f);
+        jumpVeloc = -0.1f;
         resetSandbag();
         anim.SetBool("Dead", false);
         health = maxHealth;
@@ -821,6 +965,7 @@ public class BasicControls : MonoBehaviour
         impactMultiplier = baseImpactMultiplier;
         dead = false;
         Invoke("resetInvincible", invincibilityCooldown);
+        respawnMove = true;
     }
 
     void resetInvincible()

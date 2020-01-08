@@ -83,7 +83,7 @@ ModelImporter:
         floatParameter: 0
         intParameter: 2
         messageOptions: 0
-      - time: 0.7014076
+      - time: 0.51636827
         functionName: clearAttackMovement
         data: 
         objectReferenceParameter: {instanceID: 0}
