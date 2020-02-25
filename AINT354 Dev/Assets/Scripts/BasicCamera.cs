@@ -24,11 +24,11 @@ public class BasicCamera : MonoBehaviour
     // For note: Horizontal rot is considered rotation around Vec3.Up (i.e. looking left & right), and Vertical rot is around Vec3.Left (i.e. up and down)
     void Update()
     {
-        if (Input.GetButtonDown("Lock-On"))
-        {
-            lockedOn = !lockedOn;
-            currXRot = 0;
-        }
+        //if (Input.GetButtonDown("Lock-On"))
+        //{
+        //    lockedOn = !lockedOn;
+        //    currXRot = 0;
+        //}
 
         Vector3 smoothedPosition = Vector3.Slerp(transform.position, anchor.transform.position - transform.TransformDirection(new Vector3(0, 0, zoomLevel)), smoothing);
         transform.position = smoothedPosition;

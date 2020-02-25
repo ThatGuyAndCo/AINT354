@@ -130,7 +130,7 @@ public class BasicControls : MonoBehaviour
         {
             if (dashable)
             {
-                if (Input.GetButtonDown("Dash"))
+                /*if (Input.GetButtonDown("Dash"))
                 {
                     //Dashing overrides any other actions this frame, allows cancelling attacks when certain percent through animation
                     finishAttack();
@@ -148,14 +148,14 @@ public class BasicControls : MonoBehaviour
                     sprinting = false;
                     knocked = false;
                     recoveryPhase = false;
-                }
+                }*/
             }
 
             //Check for triggerStun/KnockbackOnCommand inputs
-            if (Input.GetKeyDown(KeyCode.J))
+            /*if (Input.GetKeyDown(KeyCode.J))
                 triggerStunOnCommand();
             else if (Input.GetKeyDown(KeyCode.K))
-                triggerKnockbackOnCommand();
+                triggerKnockbackOnCommand();*/
         }
 
         //Handle all code that checks for inputs in following block
@@ -266,7 +266,7 @@ public class BasicControls : MonoBehaviour
 
             ///////////////Check Attack and Queue or Call Next Attack/////////////////
             // Attack Triggered is handled by methods called by the animations to properly set timing
-            if (playerCont.isGrounded && !sprinting && !jumpPending)
+            /*if (playerCont.isGrounded && !sprinting && !jumpPending)
             {
                 if ((Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")) && !attacking)
                 {
@@ -375,10 +375,10 @@ public class BasicControls : MonoBehaviour
                 jumpAttack = true;
                 anim.SetBool("IsAttacking", true);
                 //Debug.Log("Triggering sprint attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
-            }
+            }*/
 
         }
-        else if (dashing && canDashAttack && !dashCooldown && (Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")))
+        /*else if (dashing && canDashAttack && !dashCooldown && (Input.GetButtonDown("Fire1") || Input.GetButtonDown("Fire2")))
         {
             attacking = true;
             isDashAttacking = true;
@@ -389,7 +389,7 @@ public class BasicControls : MonoBehaviour
             anim.SetBool("DashAttack", true);
             //Debug.Log("Triggering dash attack, setting: \n   Attacking = true, AttackNumber = " + attackNum + "");
             activateAttackMovement(dashAttackSpeed);
-        }
+        }*/
 
         ///////////////Calculate Stun/////////////////
         bool stunned = false;
