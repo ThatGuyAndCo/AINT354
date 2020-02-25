@@ -413,9 +413,9 @@ public class BasicControls : MonoBehaviour
         }
 
         //Cumulate gravity if airborne even when air heavy attacking, reset if the player isnt airborne or if air light attacking
-        if ((playerCont.isGrounded && jumpVeloc < -0.1f) || jumpAttackGravityDisabled)
+        if ((playerCont.isGrounded && jumpVeloc < -0.3f) || jumpAttackGravityDisabled)
         {
-            jumpVeloc = -0.1f;
+            jumpVeloc = -0.3f;
         }
         else if (jumpVeloc > (-1 * gravity) || jumpAttackGravityDisabled == false)
         {
