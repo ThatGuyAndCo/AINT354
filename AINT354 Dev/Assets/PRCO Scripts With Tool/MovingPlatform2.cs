@@ -55,11 +55,11 @@ public class MovingPlatform2 : CustomEventHandler
                         //nextPlatformToMove.triggerMovement(false, false);
                         if (handlerTag == "firstPlatform")
                         {
-                            eventSys.sendEvent("triggerMovement", "secondPlatform", false, "MovingPlatform2", new object[] { false, false });
+                            //eventSys.sendEvent("triggerMovement", "secondPlatform", false, "MovingPlatform2", new object[] { false, false });
                         }
                         else
                         {
-                            eventSys.sendEvent("triggerMovement", "firstPlatform", false, "MovingPlatform2", new object[] { false, false });
+                            //eventSys.sendEvent("triggerMovement", "firstPlatform", false, "MovingPlatform2", new object[] { false, false });
                         }
                         moveNextPlatformAtEnd = false;
                     }

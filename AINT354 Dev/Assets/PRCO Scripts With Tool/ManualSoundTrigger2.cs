@@ -30,15 +30,15 @@ public class ManualSoundTrigger2 : MonoBehaviour
             switch (soundType)
             {
                 case 0:
-                    eventSys.sendEvent("triggerAudio", soundTagToPlay, false, "SoundPlayer2", new object[] { false });
+                    //eventSys.sendEvent("triggerAudio", soundTagToPlay, false, "SoundPlayer2", new object[] { false });
                     break;
                 case 1:
-                    eventSys.sendEvent("triggerAudio", "soundOne", false, "SoundPlayer2", new object[] { true });
+                    //eventSys.sendEvent("triggerAudio", "soundOne", false, "SoundPlayer2", new object[] { true });
                     break;
                 case 2:
-                    eventSys.sendEvent("triggerAudio", "soundOne", false, "SoundPlayer2", new object[] { false });
-                    eventSys.sendEvent("triggerAudio", "soundTwo", false, "SoundPlayer2", new object[] { false });
-                    eventSys.sendEvent("triggerAudio", "soundThree", false, "SoundPlayer2", new object[] { false });
+                    //eventSys.sendEvent("triggerAudio", "soundOne", false, "SoundPlayer2", new object[] { false });
+                    //eventSys.sendEvent("triggerAudio", "soundTwo", false, "SoundPlayer2", new object[] { false });
+                    //eventSys.sendEvent("triggerAudio", "soundThree", false, "SoundPlayer2", new object[] { false });
                     break;
             }
         }

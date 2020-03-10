@@ -26,11 +26,11 @@ public class SoundPlayer2 : CustomEventHandler
             if (handlerTag == "soundOne")
             {
                 //nextToPlay.triggerAudio(true);
-                eventSys.sendEvent("triggerAudio", "soundTwo", false, "SoundPlayer2", new object[] { true });
+                //eventSys.sendEvent("triggerAudio", "soundTwo", false, "SoundPlayer2", new object[] { true });
             }
             else if(handlerTag == "soundTwo")
             {
-                eventSys.sendEvent("triggerAudio", "soundThree", false, "SoundPlayer2", new object[] { false });
+                //eventSys.sendEvent("triggerAudio", "soundThree", false, "SoundPlayer2", new object[] { false });
             }
             else
             {

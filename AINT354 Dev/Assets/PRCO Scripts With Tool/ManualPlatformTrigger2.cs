@@ -21,7 +21,7 @@ public class ManualPlatformTrigger2 : MonoBehaviour
         {
             //Move platform
             //platformToMove.triggerMovement(false, true);
-            eventSys.sendEvent("triggerMovement", "secondPlatform", false, "MovingPlatform2", new object[] { false, true });
+            //eventSys.sendEvent("triggerMovement", "secondPlatform", false, "MovingPlatform2", new object[] { false, true });
         }
     }
 

@@ -22,7 +22,7 @@ public class CustomEventHandler : MonoBehaviour
         }
         try
         {
-            return (bool)myMethod.Invoke(this, optionalParams);
+            return (bool)myMethod.Invoke(gameObject.GetComponent(componentName), optionalParams);
         }
         catch (Exception e)
         {

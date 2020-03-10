@@ -32,7 +32,7 @@ public class TriggerPlatform2 : MonoBehaviour
             {
                 //Trigger platform A movement
                 //platformToMove.triggerMovement(false, true);
-                eventSys.sendEvent("triggerMovement", "firstPlatform", false, "MovingPlatform2", new object[] { false, true });
+                //eventSys.sendEvent("triggerMovement", "firstPlatform", false, "MovingPlatform2", new object[] { false, true });
             }
             else
             {
@@ -42,17 +42,17 @@ public class TriggerPlatform2 : MonoBehaviour
                 if(randNumber >= 0.3f)
                 {
                     //soundToPlayOne.triggerAudio(false);
-                    eventSys.sendEvent("triggerAudio", "soundOne", false, "SoundPlayer2", new object[] { false });
+                    //eventSys.sendEvent("triggerAudio", "soundOne", false, "SoundPlayer2", new object[] { false });
                 }
                 else if (randNumber >= 0.6f)
                 {
                     //soundToPlayTwo.triggerAudio(false);
-                    eventSys.sendEvent("triggerAudio", "soundTwo", false, "SoundPlayer2", new object[] { false });
+                    //eventSys.sendEvent("triggerAudio", "soundTwo", false, "SoundPlayer2", new object[] { false });
                 }
                 else
                 {
                     //soundToPlayThree.triggerAudio(false);
-                    eventSys.sendEvent("triggerAudio", "soundThree", false, "SoundPlayer2", new object[] { false });
+                    //eventSys.sendEvent("triggerAudio", "soundThree", false, "SoundPlayer2", new object[] { false });
                 }
             }
         }
