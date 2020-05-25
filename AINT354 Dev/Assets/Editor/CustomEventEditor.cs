@@ -41,11 +41,17 @@ public class CustomEventEditor : Editor
 
                 var position = new Rect(rect);
                 var foldout = element.FindPropertyRelative("foldout");
-                foldout.boolValue = EditorGUI.Foldout(new Rect(position.x, position.y, 10, EditorGUIUtility.singleLineHeight), foldout.boolValue, foldout.boolValue ? "" : ("Method \'" + element.FindPropertyRelative("methodName").stringValue + "\' on tag \'" + element.FindPropertyRelative("tag").stringValue + "\'"));
+                foldout.boolValue = EditorGUI.Foldout(new Rect(position.x, position.y, 10, EditorGUIUtility.singleLineHeight), foldout.boolValue, foldout.boolValue ? "" : 
+                    element.FindPropertyRelative("triggerName").stringValue != "" ? element.FindPropertyRelative("triggerName").stringValue : ("Method \'" + element.FindPropertyRelative("methodName").stringValue + "\' on tag \'" + element.FindPropertyRelative("tag").stringValue + "\'"));
 
                 if (foldout.boolValue)
                 {
                     rect.y += 2;
+                    EditorGUI.PropertyField(
+                        new Rect(rect.x, rect.y, 240, EditorGUIUtility.singleLineHeight),
+                        element.FindPropertyRelative("triggerName"), new GUIContent("Trigger Name", "An optional name for this trigger, to call it more easily (but slowly) from a script."));
+
+                    rect.y += EditorGUIUtility.singleLineHeight * 1.25f;
                     EditorGUI.PropertyField(
                         new Rect(rect.x, rect.y, 240, EditorGUIUtility.singleLineHeight),
                         element.FindPropertyRelative("scriptName"), new GUIContent("Script Name", "The name of the C# Script you are going to call a method on."));
@@ -77,7 +83,7 @@ public class CustomEventEditor : Editor
                 var element = data.serializedProperty.GetArrayElementAtIndex(index);
                 if (element.FindPropertyRelative("foldout").boolValue)
                 {
-                    return ((EditorGUIUtility.singleLineHeight * 1.25f) * 5) + 2; //5 lines of 1.25x line height, with 2px padding at the bottom
+                    return ((EditorGUIUtility.singleLineHeight * 1.25f) * 6) + 2; //6 lines of 1.25x line height, with 2px padding at the bottom
                 }
                 else
                 {

@@ -8,13 +8,32 @@ public class SoundPlayer2 : CustomEventHandler
     private AudioSource myAudio;
     //public SoundPlayer nextToPlay;
     private bool sequential = false;
-    CustomEventMaster eventSys;
+    CustomEventTrigger eventTriggers;
 
     // Start is called before the first frame update
     void Start()
     {
         myAudio = gameObject.GetComponent<AudioSource>();
-        eventSys = UnityEngine.Object.FindObjectOfType<CustomEventMaster>();
+        eventTriggers = gameObject.GetComponent<CustomEventTrigger>();
+
+        //Sequential sound 2
+        eventTriggers.triggerList.Add(new CustomEventTrigger.ce_Trigger(
+            "Call seq sound", //Trigger Name
+            "SoundPlayer2", //Script Name
+            "triggerAudio", //Method Name
+            "soundTwo", //Tag
+            new object[] { true } //Parameters for method being called
+        ));
+
+        //Sequential sound 3
+        eventTriggers.triggerList.Add(new CustomEventTrigger.ce_Trigger(
+            "Call seq sound", //Trigger Name
+            "SoundPlayer2", //Script Name
+            "triggerAudio", //Method Name
+            "soundThree", //Tag
+            new object[] { false } //Parameters for method being called
+        ));
+
     }
 
     // Update is called once per frame
@@ -26,34 +45,25 @@ public class SoundPlayer2 : CustomEventHandler
             if (handlerTag == "soundOne")
             {
                 //nextToPlay.triggerAudio(true);
-                //eventSys.sendEvent("triggerAudio", "soundTwo", false, "SoundPlayer2", new object[] { true });
+                eventTriggers.triggerList[0].fire();
             }
             else if(handlerTag == "soundTwo")
             {
-                //eventSys.sendEvent("triggerAudio", "soundThree", false, "SoundPlayer2", new object[] { false });
-            }
-            else
-            {
-                sequential = false;
+                eventTriggers.triggerList[1].fire();
             }
         }
     }
 
     public bool triggerAudio(bool sequential)
     {
-        bool seq;
-        try
-        {
-            seq = sequential;
-        }
-        catch (Exception ex)
-        {
-            Debug.Log("Error occured at triggerAudio. Failed to cast sequential to bool. Error is as follows:");
-            Debug.Log(ex);
-            return false;
-        }
         myAudio.Play();
-        this.sequential = seq;
+        this.sequential = sequential;
+        return true;
+    }
+
+    public bool playMyAudio()
+    {
+        myAudio.Play();
         return true;
     }
 }

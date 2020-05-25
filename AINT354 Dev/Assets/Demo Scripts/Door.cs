@@ -13,7 +13,7 @@ public class Door : MonoBehaviour
 
     void Start()
     {
-        eventTriggers = GetComponent<CustomEventTrigger>(); //Get ref to trigger script on object
+        /*eventTriggers = GetComponent<CustomEventTrigger>(); //Get ref to trigger script on object
 
         eventTriggers.triggerList.Add(new ce_TriggerStruct(
                 "DoorHandler", //Script file name, case sensitive
@@ -22,14 +22,14 @@ public class Door : MonoBehaviour
                 new object[] { true, 1.0f, "parameter 3", "etc..." }
             ));
 
-        triggerWithParamsIndex = triggerList.Count - 1; //Get the index of the newly added trigger
+        triggerWithParamsIndex = triggerList.Count - 1; //Get the index of the newly added trigger*/
     }
     
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E))
+        /*if (Input.GetKeyDown(KeyCode.E))
         {
             eventTriggers.triggerList[triggerWithParamsIndex].fire(); //Fire the event we added in the Start Method.
-        }
+        }*/
     }
 }

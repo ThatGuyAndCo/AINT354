@@ -15,13 +15,27 @@ public class MovingPlatform2 : CustomEventHandler
     private bool moveNextPlatformAtEnd = false;
 
     //public MovingPlatform nextPlatformToMove;
-    CustomEventMaster eventSys;
+    CustomEventTrigger eventTriggers;
 
     // Start is called before the first frame update
     void Start()
     {
         startPosition = transform.position;
-        eventSys = UnityEngine.Object.FindObjectOfType<CustomEventMaster>();
+
+        eventTriggers = gameObject.GetComponent<CustomEventTrigger>();
+        String tagName;
+        if (handlerTag.ToLower() == "firstplatform")
+            tagName = "secondPlatform";
+        else
+            tagName = "firstPlatform";
+        //Add a new ce_Trigger instance with parameters to the event trigger list
+        eventTriggers.triggerList.Add(new CustomEventTrigger.ce_Trigger(
+            "Call platform", //Trigger Name
+            "MovingPlatform2", //Script Name
+            "triggerMovement", //Method Name
+            tagName, //Tag
+            new object[] { false, false } //Parameters for method being called
+        ));
     }
 
     // Update is called once per frame
@@ -46,21 +60,14 @@ public class MovingPlatform2 : CustomEventHandler
             else
             {
                 transform.position = Vector3.MoveTowards(transform.position, endPosition, Time.deltaTime * smoothing);
-                if(transform.position == endPosition)
+                if (transform.position == endPosition)
                 {
                     movePlatform = false;
                     if (moveNextPlatformAtEnd)
                     {
                         Debug.Log("moveNextAtEnd");
                         //nextPlatformToMove.triggerMovement(false, false);
-                        if (handlerTag == "firstPlatform")
-                        {
-                            //eventSys.sendEvent("triggerMovement", "secondPlatform", false, "MovingPlatform2", new object[] { false, false });
-                        }
-                        else
-                        {
-                            //eventSys.sendEvent("triggerMovement", "firstPlatform", false, "MovingPlatform2", new object[] { false, false });
-                        }
+                        eventTriggers.triggerList[0].fire();
                         moveNextPlatformAtEnd = false;
                     }
                     triggerMovement(true, false);

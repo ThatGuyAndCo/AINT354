@@ -9,16 +9,45 @@ public class ManualSoundTrigger2 : MonoBehaviour
     //0 = sound 1, 1 = sequential, 2 = simultanious
     public int soundType = 0;
     public string soundTagToPlay;
-    CustomEventMaster eventSys;
+    CustomEventTrigger eventTriggers;
 
-    //public SoundPlayer soundToPlayOne;
-    //public SoundPlayer soundToPlayTwo;
-    //public SoundPlayer soundToPlayThree;
+    //public SoundPlayer2 soundToPlayOne;
+    //public SoundPlayer2 soundToPlayTwo;
+    //public SoundPlayer2 soundToPlayThree;
 
     // Start is called before the first frame update
     void Start()
     {
-        eventSys = UnityEngine.Object.FindObjectOfType<CustomEventMaster>();
+        eventTriggers = gameObject.GetComponent<CustomEventTrigger>();
+
+        //Individual to trigger
+        eventTriggers.triggerList.Add(new CustomEventTrigger.ce_Trigger(
+            "Call my sound", //Trigger Name
+            "SoundPlayer2", //Script Name
+            "triggerAudio", //Method Name
+            soundTagToPlay, //Tag
+            new object[] { false } //Parameters for method being called
+        ));
+
+        //Sequential
+        eventTriggers.triggerList.Add(new CustomEventTrigger.ce_Trigger(
+            "Call seq sound", //Trigger Name
+            "SoundPlayer2", //Script Name
+            "triggerAudio", //Method Name
+            "soundOne", //Tag
+            new object[] { true } //Parameters for method being called
+        ));
+
+        //Simultainous
+        eventTriggers.triggerList.Add(new CustomEventTrigger.ce_Trigger(
+            "Call all sound", //Trigger Name
+            "SoundPlayer2", //Script Name
+            "triggerAudio", //Method Name
+            "sound", //Tag
+            false, //Enable disabled objects
+            false, //Exact tag match (default = true)
+            new object[] { false } //Parameters for method being called
+        ));
     }
 
     // Update is called once per frame
@@ -30,15 +59,13 @@ public class ManualSoundTrigger2 : MonoBehaviour
             switch (soundType)
             {
                 case 0:
-                    //eventSys.sendEvent("triggerAudio", soundTagToPlay, false, "SoundPlayer2", new object[] { false });
+                    eventTriggers.fireByName("Call my sound");
                     break;
                 case 1:
-                    //eventSys.sendEvent("triggerAudio", "soundOne", false, "SoundPlayer2", new object[] { true });
+                    eventTriggers.fireByName("Call seq sound");
                     break;
                 case 2:
-                    //eventSys.sendEvent("triggerAudio", "soundOne", false, "SoundPlayer2", new object[] { false });
-                    //eventSys.sendEvent("triggerAudio", "soundTwo", false, "SoundPlayer2", new object[] { false });
-                    //eventSys.sendEvent("triggerAudio", "soundThree", false, "SoundPlayer2", new object[] { false });
+                    eventTriggers.fireByName("Call all sound");
                     break;
             }
         }

@@ -6,12 +6,20 @@ public class ManualPlatformTrigger2 : MonoBehaviour
 {
     private bool inTrigger = false;
     //public MovingPlatform platformToMove;
-    CustomEventMaster eventSys;
+    CustomEventTrigger eventTriggers;
 
     // Start is called before the first frame update
     void Start()
     {
-        eventSys = Object.FindObjectOfType<CustomEventMaster>();
+        eventTriggers = gameObject.GetComponent<CustomEventTrigger>();
+
+        eventTriggers.triggerList.Add(new CustomEventTrigger.ce_Trigger(
+            "Call platform", //Trigger Name
+            "MovingPlatform2", //Script Name
+            "triggerMovement", //Method Name
+            "secondPlatform", //Tag
+            new object[] { false, true } //Parameters for method being called
+        ));
     }
 
     // Update is called once per frame
@@ -21,7 +29,7 @@ public class ManualPlatformTrigger2 : MonoBehaviour
         {
             //Move platform
             //platformToMove.triggerMovement(false, true);
-            //eventSys.sendEvent("triggerMovement", "secondPlatform", false, "MovingPlatform2", new object[] { false, true });
+            eventTriggers.triggerList[0].fire();
         }
     }
 
