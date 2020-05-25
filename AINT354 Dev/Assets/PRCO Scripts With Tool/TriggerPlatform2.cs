@@ -108,15 +108,15 @@ public class TriggerPlatform2 : MonoBehaviour
                 /*double[] testReturn = standardCallTest();
                 Debug.Log("standard call data returned, final array value: " + testReturn[10000000 - 1]);*/
 
-                for (int i = 0; i < 10000; i++)
+                /*for (int i = 0; i < 10000; i++)
                 {
                     standardCallTestNoReturn();
                 }
 
-                //for (int i = 0; i < 10000; i++)
-                //{
-                //    eventTriggers.fireByName("Test call");
-                //}
+                for (int i = 0; i < 10000; i++)
+                {
+                    eventTriggers.fireByName("Test call");
+                }*/
 
 
                 /*job3Handle.Complete();
@@ -175,7 +175,7 @@ public class TriggerPlatform2 : MonoBehaviour
         return calcTest;
     }*/
 
-    public bool standardEventTest()
+    /*public bool standardEventTest()
     {
         double[] calcTest = new double[10];
         for (int i = 0; i < 10; i++)
@@ -217,7 +217,7 @@ public class TriggerPlatform2 : MonoBehaviour
         }
         Debug.Log("Im done!");
         return true;
-    }
+    }*/
 }
 
 /*[BurstCompile()]
